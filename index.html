@@ -1,98 +1,224 @@
 <!doctype html>
 <html lang="da">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fff8e9"><title>Ord-eventyr – dansk diktat</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<style>
-:root{--ink:#24304a;--muted:#667085;--bg:#fff8e9;--line:#e8e4dc;--accent:#6854d9}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 3%,#f8e6ff,transparent 36%),var(--bg);color:var(--ink);font-family:'Nunito',sans-serif}.shell{max-width:1180px;margin:0 auto;padding:24px 16px 48px}.topbar,.history-head,.game-head,.player-grid,.setup-grid,.option-grid,.avatar-grid,.skill-row,.score-meta{display:flex;align-items:center;justify-content:space-between;gap:12px}.topbar{margin-bottom:16px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.2rem}.brand-icon{font-size:1.4rem}.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.screen{display:none}.screen.active{display:block}.panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 14px 32px rgba(36,48,74,.08)}.hero{padding:8px 4px 18px}.hero h1,.hero h2,.panel h2{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.4rem)}.hero p,.muted{color:var(--muted);margin:0 0 16px}.btn,.chip,.color-card,.avatar-choice,.profile-card,.attempt-card,.letter{border:none;border-radius:14px;font:inherit}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;background:var(--accent);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(104,84,217,.2)}.btn.secondary{background:#f1effd;color:var(--ink)}.btn.small{padding:10px 12px;font-size:.9rem}.profile-grid,.color-grid,.word-grid,.avatar-grid,.history-list,.game-board{display:grid;gap:14px}.profile-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:16px}.profile-card{background:#f9f7ff;padding:16px;border:1px solid var(--line);text-align:left;cursor:pointer;transition:transform .15s ease}.profile-card.selected{outline:3px solid rgba(104,84,217,.2);background:#f1effd}.profile-avatar{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#fff;border:1px solid var(--line);font-size:1.8rem}.profile-card strong{display:block;margin:12px 0 4px}.profile-card small{color:var(--muted)}.chip{padding:8px 12px;background:#f7f7fb;color:var(--ink);font-weight:700;cursor:pointer}.chip.active{background:#ece9ff}.field{display:grid;gap:8px;margin-bottom:12px}.label{font-weight:700;color:var(--ink)}input,textarea,select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit}.textarea-row{display:grid;gap:12px;margin-top:16px}.wordEditors{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.wordEditors .label{display:block;margin-bottom:8px}.wordEditors textarea{min-height:120px;resize:vertical}.color-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:12px}.color-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);background:#fff;text-align:left;cursor:pointer}.color-card.selected{background:#f5f2ff;border-color:#d9d0ff}.dot{display:inline-block;width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.65)}.setup-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:20px}.option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}.wordCount{font-size:.95rem;color:var(--muted);margin-top:12px}.game-head{margin-bottom:12px}.progress{height:12px;background:#f0efe9;border-radius:999px;overflow:hidden}.progressFill{display:block;height:100%;width:0;background:linear-gradient(90deg,#6854d9,#8d6df6);border-radius:inherit}.answerRow{display:flex;gap:10px;margin-top:18px}.answerRow input{flex:1}.letter-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.letter{padding:10px 12px;background:#f5f3ff;color:var(--ink);font-weight:800;cursor:pointer}.feedback{min-height:24px;margin-top:12px;font-weight:700}.feedback.good{color:#0b8b5d}.feedback.bad{color:#be3b3b}.resultsList,.history-list{display:grid;gap:10px;margin-top:12px}.result,.review-row,.attempt-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#fafbff;border:1px solid var(--line);border-radius:12px}.result strong,.attempt-card strong{font-size:1rem}.review-row{justify-content:space-between}.summary{display:grid;place-items:center;text-align:center;gap:12px}.summary .profile-avatar{width:80px;height:80px;font-size:2.4rem}.score-panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.stat{padding:14px;background:#faf8ff;border:1px solid var(--line);border-radius:14px}.stat small{display:block;color:var(--muted)}.stat strong{display:block;font-size:1.5rem;margin-top:6px}.attempt-card{cursor:pointer;width:100%;text-align:left;border:1px solid var(--line);background:#fff}.attempt-card small{color:var(--muted);display:block;margin-top:4px}.active-profile{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;background:#f5f2ff;border:1px solid #dcd1ff;border-radius:999px;font-weight:700}.active-profile[hidden]{display:none}.hidden{display:none!important}.dialog-wrap{padding:18px}.dialog-wrap h2{margin:0}.dialog-wrap p{color:var(--muted)}dialog{border:none;border-radius:18px;padding:0;max-width:620px;width:min(92vw,620px);box-shadow:0 18px 48px rgba(36,48,74,.2)}dialog::backdrop{background:rgba(24,30,41,.38)}.sr-only{position:absolute;left:-9999px;overflow:hidden;width:1px;height:1px}.status-text{margin-top:10px;color:var(--muted);font-size:.95rem}.history-head{margin-bottom:14px}.upload{display:inline-flex;align-items:center;justify-content:center;padding:12px 14px;border:1px dashed var(--line);background:#fafbff;border-radius:12px;font-weight:700;cursor:pointer;position:relative;overflow:hidden}.upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#fff8e9">
+  <title>Ord-eventyr – dansk diktat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    :root { --ink:#24304a; --muted:#667085; --bg:#fff8e9; --line:#e8e4dc; --accent:#6854d9; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:'Nunito',sans-serif; background:radial-gradient(ellipse at 10% 3%,#f8e6ff,transparent 36%),var(--bg); color:var(--ink); }
+    .shell { max-width:1200px; margin:0 auto; padding:24px 16px 48px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.2rem; }
+    .brand-icon { font-size:1.4rem; }
+    .header-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .screen { display:none; }
+    .screen.active { display:block; }
+    .panel { background:#fff; border:1px solid var(--line); border-radius:20px; padding:18px; box-shadow:0 12px 30px rgba(36,48,74,.08); }
+    .hero { padding:8px 4px 18px; }
+    .hero h1 { margin:0 0 8px; font-size:clamp(1.8rem,4vw,2.5rem); }
+    .hero p { margin:0; color:var(--muted); }
+    .history-head, .game-head, .row, .answerRow, .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 18px; border:none; border-radius:14px; background:var(--accent); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+    .btn.secondary { background:#f1effd; color:var(--ink); }
+    .btn.small { padding:10px 12px; font-size:.9rem; }
+    .profile-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-top:12px; }
+    .profile-card { background:#f9f7ff; border:1px solid var(--line); border-radius:16px; padding:16px; text-align:left; cursor:pointer; }
+    .profile-card.selected { outline:3px solid rgba(104,84,217,.18); background:#f1effd; }
+    .profile-avatar { width:52px; height:52px; border-radius:16px; display:grid; place-items:center; background:#fff; border:1px solid var(--line); font-size:1.8rem; }
+    .profile-card strong { display:block; margin:12px 0 4px; }
+    .profile-card small { color:var(--muted); }
+    .chip { padding:8px 12px; border-radius:12px; border:1px solid var(--line); background:#fff; font:inherit; cursor:pointer; }
+    .chip.active { background:#ece9ff; border-color:#d8d0ff; }
+    .field { display:grid; gap:8px; margin-bottom:12px; }
+    .label { font-weight:700; }
+    input, textarea, select { width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); font:inherit; }
+    .avatar-grid { display:flex; flex-wrap:wrap; gap:10px; }
+    .setup-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:20px; }
+    .wordEditors { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .wordEditors textarea { min-height:120px; resize:vertical; }
+    .color-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+    .color-card { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; }
+    .color-card.selected { background:#f5f2ff; border-color:#d9d0ff; }
+    .dot { width:18px; height:18px; display:inline-block; border-radius:50%; }
+    .wordCount { margin-top:12px; color:var(--muted); font-size:.95rem; }
+    .progress { height:12px; border-radius:999px; background:#f0efe9; overflow:hidden; }
+    .progressFill { display:block; height:100%; width:0; background:linear-gradient(90deg,#6854d9,#8d6df6); border-radius:inherit; }
+    .answerRow { display:flex; gap:10px; margin-top:18px; }
+    .answerRow input { flex:1; }
+    .letter-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .letter { padding:10px 12px; border:none; border-radius:10px; background:#f5f3ff; color:var(--ink); font:inherit; font-weight:800; cursor:pointer; }
+    .feedback { min-height:24px; margin-top:12px; font-weight:700; }
+    .feedback.good { color:#0b8b5d; }
+    .feedback.bad { color:#be3b3b; }
+    .summary { display:grid; place-items:center; text-align:center; gap:12px; }
+    .score-panel { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+    .stat { padding:14px; background:#faf8ff; border:1px solid var(--line); border-radius:14px; }
+    .stat small { display:block; color:var(--muted); }
+    .stat strong { display:block; font-size:1.5rem; margin-top:6px; }
+    .resultsList, .history-list { display:grid; gap:10px; margin-top:12px; }
+    .result, .review-row, .attempt-card { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; background:#fafbff; border:1px solid var(--line); border-radius:12px; }
+    .attempt-card { width:100%; text-align:left; cursor:pointer; }
+    .attempt-card small { display:block; color:var(--muted); margin-top:4px; }
+    .result strong { font-size:1rem; }
+    .active-profile { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:#f5f2ff; border:1px solid #dcd1ff; font-weight:700; }
+    .active-profile[hidden] { display:none; }
+    .status-text { margin-top:10px; color:var(--muted); font-size:.95rem; }
+    dialog { border:none; border-radius:18px; padding:0; max-width:620px; width:min(92vw,620px); box-shadow:0 18px 48px rgba(36,48,74,.2); }
+    dialog::backdrop { background:rgba(24,30,41,.38); }
+    .dialog-wrap { padding:18px; }
+    .dialog-wrap h2 { margin:0; }
+    .dialog-wrap p { color:var(--muted); }
+    .upload { position:relative; display:inline-flex; align-items:center; justify-content:center; padding:12px 14px; border:1px dashed var(--line); background:#fafbff; border-radius:12px; font-weight:700; cursor:pointer; overflow:hidden; }
+    .upload input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+  </style>
 </head>
-<body><main class="shell">
-<header class="topbar"><div class="brand"><span class="brand-icon">🏆</span><span>Ord-eventyr</span></div><div class="header-actions"><div id="activeProfileBadge" class="active-profile" hidden></div><button id="languageButton" class="btn secondary small" type="button" data-t="languageLabel">DA / EN</button></div></header>
-
-<section id="playersScreen" class="screen active">
-  <div class="hero"><h1 data-t="playersTitle">Hvem vil øve i dag?</h1><p data-t="playersSub">Vælg en spiller, eller lav en ny figur! ✨</p></div>
-  <div class="panel">
-    <div class="history-head">
-      <h2 data-t="choosePlayer">Vælg en spiller</h2>
-      <button id="newPlayerButton" class="btn secondary small" type="button" data-t="newPlayer">Ny spiller</button>
-    </div>
-    <div id="profiles" class="profile-grid"></div>
-  </div>
-</section>
-
-<section id="characterScreen" class="screen">
-  <div class="hero"><h1 data-t="playerCreate">Lav din figur</h1><p data-t="playerHelp">Vælg en profil, eller opret en ny.</p></div>
-  <div class="panel">
-    <h2 id="characterHeading">Ny profil</h2>
-    <div class="field"><label class="label" for="profileName" data-t="profileName">Navn</label><input id="profileName" type="text" maxlength="24"></div>
-    <div class="field"><label class="label" for="profileColor" data-t="profileColor">Farve</label><input id="profileColor" type="color" value="#6854d9"></div>
-    <div class="field"><label class="label" data-t="profileAvatar">Avatar</label><div id="avatarChoices" class="avatar-grid"></div></div>
-    <div class="field"><label class="label" for="profilePhoto" data-t="choosePhoto">Vælg billede</label><input id="profilePhoto" type="file" accept="image/*"></div>
-    <div class="row"><button id="saveProfileButton" class="btn" type="button" data-t="save">Gem</button><button id="cancelProfileButton" class="btn secondary" type="button" data-t="cancel">Annuller</button></div>
-  </div>
-</section>
-
-<section id="setupScreen" class="screen">
-  <div class="hero"><h1 id="welcomeTitle">Klar til ord-eventyr?</h1><p data-t="setupSub">Upload din ordliste, vælg en farve, og lyt godt efter 🎧</p></div>
-  <div class="panel">
-    <div class="setup-grid">
-      <div>
-        <div class="field"><label class="upload" for="imageFile"><input id="imageFile" type="file" accept="image/*">📷 Upload ordliste</label></div>
-        <div id="ocrStatus" class="status-text">Ingen billedfil valgt.</div>
-        <div id="wordEditors" class="wordEditors"></div>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-icon">🏆</span><span>Ord-eventyr</span></div>
+      <div class="header-actions">
+        <div id="activeProfileBadge" class="active-profile" hidden></div>
+        <button id="languageButton" class="btn secondary small" type="button" data-t="languageLabel">DA / EN</button>
       </div>
-      <div>
-        <div class="field"><label class="label" data-t="chooseColor">Vælg farve</label><div id="colorChoices" class="color-grid"></div></div>
-        <div id="wordCount" class="wordCount"></div>
-        <button id="startButton" class="btn" type="button" data-t="startPractice">Start øvelse</button>
+    </header>
+
+    <section id="playersScreen" class="screen active">
+      <div class="hero">
+        <h1 data-t="playersTitle">Hvem vil øve i dag?</h1>
+        <p data-t="playersSub">Vælg en spiller, eller lav en ny figur! ✨</p>
       </div>
-    </div>
-  </div>
-</section>
+      <div class="panel">
+        <div class="history-head">
+          <h2 data-t="choosePlayer">Vælg en spiller</h2>
+          <button id="newPlayerButton" class="btn secondary small" type="button" data-t="newPlayer">Ny spiller</button>
+        </div>
+        <div id="profiles" class="profile-grid"></div>
+      </div>
+    </section>
 
-<section id="gameScreen" class="screen">
-  <div class="panel">
-    <div class="game-head"><h2 data-t="dictation">Diktat</h2><span id="progressText"></span></div>
-    <div class="progress"><div id="progressFill" class="progressFill"></div></div>
-    <div class="answerRow"><input id="answerInput" type="text" placeholder="Skriv dit svar" aria-label="Svar"><button id="playButton" class="btn secondary" type="button">🔊</button></div>
-    <div id="feedback" class="feedback" aria-live="polite"></div>
-    <div class="letter-row">
-      <button type="button" class="letter" data-letter="æ">æ</button>
-      <button type="button" class="letter" data-letter="ø">ø</button>
-      <button type="button" class="letter" data-letter="å">å</button>
-      <button type="button" class="letter" data-letter="Æ">Æ</button>
-      <button type="button" class="letter" data-letter="Ø">Ø</button>
-      <button type="button" class="letter" data-letter="Å">Å</button>
-    </div>
-    <form id="answerForm"><button class="btn" type="submit">Svar</button></form>
-  </div>
-</section>
+    <section id="characterScreen" class="screen">
+      <div class="hero">
+        <h1 data-t="playerCreate">Lav din figur</h1>
+        <p data-t="playerHelp">Vælg en profil eller opret en ny.</p>
+      </div>
+      <div class="panel">
+        <h2 id="characterHeading">Ny profil</h2>
+        <div class="field">
+          <label class="label" for="profileName" data-t="profileName">Navn</label>
+          <input id="profileName" type="text" maxlength="24">
+        </div>
+        <div class="field">
+          <label class="label" for="profileColor" data-t="profileColor">Farve</label>
+          <input id="profileColor" type="color" value="#6854d9">
+        </div>
+        <div class="field">
+          <label class="label" data-t="profileAvatar">Avatar</label>
+          <div id="avatarChoices" class="avatar-grid"></div>
+        </div>
+        <div class="field">
+          <label class="label" for="profilePhoto" data-t="choosePhoto">Vælg billede</label>
+          <input id="profilePhoto" type="file" accept="image/*">
+        </div>
+        <div class="row">
+          <button id="saveProfileButton" class="btn" type="button" data-t="save">Gem</button>
+          <button id="cancelProfileButton" class="btn secondary" type="button" data-t="cancel">Annuller</button>
+        </div>
+      </div>
+    </section>
 
-<section id="summaryScreen" class="screen">
-  <div class="panel summary">
-    <div id="summaryAvatar" class="profile-avatar">🎉</div>
-    <h2 id="summaryTitle" style="text-align:center"></h2>
-    <p id="summaryDetails" class="muted"></p>
-    <div class="score-panel">
-      <div class="stat"><small>Score</small><strong id="scoreDisplay">0/0</strong></div>
-    </div>
-    <div id="resultsList" class="resultsList"></div>
-    <button type="button" id="backToSetupButton" class="btn secondary">Tilbage</button>
-  </div>
-</section>
+    <section id="setupScreen" class="screen">
+      <div class="hero">
+        <h1 id="welcomeTitle">Klar til ord-eventyr?</h1>
+        <p data-t="setupSub">Upload din ordliste, vælg en farve, og lyt godt efter 🎧</p>
+      </div>
+      <div class="panel">
+        <div class="setup-grid">
+          <div>
+            <div class="field">
+              <label class="upload" for="imageFile">
+                <input id="imageFile" type="file" accept="image/*">
+                📷 Upload ordliste
+              </label>
+            </div>
+            <div id="ocrStatus" class="status-text">Ingen billedfil valgt.</div>
+            <div id="wordEditors" class="wordEditors"></div>
+          </div>
+          <div>
+            <div class="field">
+              <label class="label" data-t="chooseColor">Vælg farve</label>
+              <div id="colorChoices" class="color-grid"></div>
+            </div>
+            <div id="wordCount" class="wordCount"></div>
+            <button id="startButton" class="btn" type="button" data-t="startPractice">Start øvelse</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<section class="panel"><div class="history-head"><h2 data-t="historyTitle">📚 Tidligere forsøg</h2><button id="exportButton" class="btn secondary small" type="button" data-t="exportCsv">Hent CSV</button></div><div id="historyContent" class="history-list"></div></section>
+    <section id="gameScreen" class="screen">
+      <div class="panel">
+        <div class="game-head">
+          <h2 data-t="dictation">Diktat</h2>
+          <span id="progressText"></span>
+        </div>
+        <div class="progress"><div id="progressFill" class="progressFill"></div></div>
+        <div class="answerRow">
+          <input id="answerInput" type="text" placeholder="Skriv dit svar" aria-label="Svar">
+          <button id="playButton" class="btn secondary" type="button">🔊</button>
+        </div>
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+        <div class="letter-row">
+          <button type="button" class="letter" data-letter="æ">æ</button>
+          <button type="button" class="letter" data-letter="ø">ø</button>
+          <button type="button" class="letter" data-letter="å">å</button>
+          <button type="button" class="letter" data-letter="Æ">Æ</button>
+          <button type="button" class="letter" data-letter="Ø">Ø</button>
+          <button type="button" class="letter" data-letter="Å">Å</button>
+        </div>
+        <form id="answerForm">
+          <button class="btn" type="submit">Svar</button>
+        </form>
+      </div>
+    </section>
 
-<dialog id="attemptDialog">
-  <div class="dialog-wrap">
-    <h2 id="attemptTitle"></h2>
-    <p id="attemptMeta"></p>
-    <div id="attemptReview"></div>
-    <form method="dialog"><button class="btn" data-t="close">Luk</button></form>
-  </div>
-</dialog>
+    <section id="summaryScreen" class="screen">
+      <div class="panel summary">
+        <div id="summaryAvatar" class="profile-avatar">🎉</div>
+        <h2 id="summaryTitle" style="text-align:center"></h2>
+        <p id="summaryDetails" class="muted"></p>
+        <div class="score-panel">
+          <div class="stat"><small>Score</small><strong id="scoreDisplay">0/0</strong></div>
+        </div>
+        <div id="resultsList" class="resultsList"></div>
+        <button type="button" id="backToSetupButton" class="btn secondary">Tilbage</button>
+      </div>
+    </section>
 
-<script type="module" src="js/app.js"></script>
-</main></body></html>
+    <section class="panel">
+      <div class="history-head">
+        <h2 data-t="historyTitle">📚 Tidligere forsøg</h2>
+        <button id="exportButton" class="btn secondary small" type="button" data-t="exportCsv">Hent CSV</button>
+      </div>
+      <div id="historyContent" class="history-list"></div>
+    </section>
+
+    <dialog id="attemptDialog">
+      <div class="dialog-wrap">
+        <h2 id="attemptTitle"></h2>
+        <p id="attemptMeta"></p>
+        <div id="attemptReview"></div>
+        <form method="dialog"><button class="btn" data-t="close">Luk</button></form>
+      </div>
+    </dialog>
+
+    <script type="module" src="js/app.js"></script>
+  </main>
+</body>
+</html>
