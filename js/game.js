@@ -5,42 +5,26 @@ import { getPreferredVoice, speakWord } from './speech.js';
 import { handleImageUpload } from './ocr.js';
 
 const appState = {
-  lang: localStorage.getItem(K.l) || 'da',
-  selected: 'green',
-  round: [],
-  results: [],
-  index: 0,
-  locked: false,
-  voice: null,
-  profiles: [],
-  activeId: null,
-  editingId: null,
-  avatar: avatarSet[0] || '🎯'
+  lang: localStorage.getItem(K.l) || 'da', selected: 'green', round: [], results: [], index: 0,
+  locked: false, voice: null, profiles: [], activeId: null, editingId: null, avatar: avatarSet[0] || '🎯'
 };
-
 const $ = (id) => document.getElementById(id);
 
 function setScreen(id) {
   document.querySelectorAll('.screen').forEach((screen) => screen.classList.toggle('active', screen.id === id));
 }
-
-function activeProfile() {
-  return activeProfileFromState(appState.profiles, appState.activeId);
-}
-
+function activeProfile() { return activeProfileFromState(appState.profiles, appState.activeId); }
 function appendAvatar(target, value) {
   setAvatar(target, value || '🎉');
   const image = target.querySelector('img');
   if (image) Object.assign(image.style, { width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' });
 }
-
 function makeAvatar(className, value) {
   const avatar = document.createElement('span');
   avatar.className = className;
   appendAvatar(avatar, value);
   return avatar;
 }
-
 function renderActiveProfileBadge() {
   const badge = $('activeProfileBadge');
   if (!badge) return;
@@ -49,36 +33,36 @@ function renderActiveProfileBadge() {
   badge.hidden = !profile;
   if (!profile) return;
   badge.append(makeAvatar('profile-badge-avatar', profile.avatar));
-  const label = document.createElement('span');
-  label.textContent = profileSummary(profile);
-  badge.appendChild(label);
+  const name = document.createElement('span');
+  name.textContent = profileSummary(profile);
+  badge.appendChild(name);
 }
-
 function renderProfiles() {
   const host = $('profiles');
   if (!host) return;
   host.replaceChildren();
-
   appState.profiles.forEach((profile) => {
     const card = document.createElement('article');
-    card.className = 'profile-card' + (appState.activeId === profile.id ? ' selected' : '');
+    const selected = appState.activeId === profile.id;
+    card.className = 'profile-card' + (selected ? ' selected' : '');
 
-    const choose = document.createElement('button');
-    choose.type = 'button';
-    choose.className = 'profile-select';
-    choose.setAttribute('aria-pressed', String(appState.activeId === profile.id));
-    choose.appendChild(makeAvatar('profile-avatar', profile.avatar));
+    const select = document.createElement('button');
+    select.type = 'button';
+    select.className = 'profile-select';
+    select.setAttribute('aria-pressed', String(selected));
+    select.appendChild(makeAvatar('profile-avatar', profile.avatar));
+    const details = document.createElement('span');
     const name = document.createElement('strong');
     name.textContent = profile.name || 'Guest';
     const color = document.createElement('small');
     color.textContent = profile.color || '#6854d9';
-    choose.append(name, color);
-    choose.addEventListener('click', () => {
+    details.append(name, color);
+    select.appendChild(details);
+    // Selecting only highlights the card; it must never navigate or start a game.
+    select.addEventListener('click', () => {
       appState.activeId = profile.id;
       renderProfiles();
       renderActiveProfileBadge();
-      const start = $('continueWithPlayerButton');
-      if (start) start.disabled = false;
     });
 
     const actions = document.createElement('div');
@@ -94,14 +78,12 @@ function renderProfiles() {
     remove.textContent = t(appState.lang, 'deletePlayer');
     remove.addEventListener('click', () => deleteProfile(profile));
     actions.append(edit, remove);
-    card.append(choose, actions);
+    card.append(select, actions);
     host.appendChild(card);
   });
-
   const start = $('continueWithPlayerButton');
-  if (start) start.disabled = !activeProfile();
+  if (start) start.hidden = !activeProfile();
 }
-
 function deleteProfile(profile) {
   if (!window.confirm(t(appState.lang, 'confirmDeletePlayer', { name: profile.name || 'Guest' }))) return;
   appState.profiles = appState.profiles.filter((item) => item.id !== profile.id);
@@ -110,7 +92,6 @@ function deleteProfile(profile) {
   renderProfiles();
   renderActiveProfileBadge();
 }
-
 function renderAvatarChoices() {
   const host = $('avatarChoices');
   if (!host) return;
@@ -124,7 +105,6 @@ function renderAvatarChoices() {
     host.appendChild(button);
   });
 }
-
 function renderColorChoices() {
   const host = $('colorChoices');
   if (!host) return;
@@ -141,14 +121,12 @@ function renderColorChoices() {
     host.appendChild(button);
   });
 }
-
 function updateWordCount() {
   const count = $('wordCount');
   if (!count) return;
   const groups = readWordGroups();
   count.textContent = C.map((color) => `${colorName(appState.lang, color.id)}: ${(groups[color.id] || []).length}`).join(' · ');
 }
-
 function renderWordEditors() {
   const host = $('wordEditors');
   if (!host) return;
@@ -173,21 +151,18 @@ function renderWordEditors() {
   });
   updateWordCount();
 }
-
 function openProfileEditor(profile = null) {
   appState.editingId = profile?.id || null;
   appState.avatar = profile?.avatar || avatarSet[0] || '🎯';
   if ($('profileName')) $('profileName').value = profile?.name || '';
   if ($('profileColor')) $('profileColor').value = profile?.color || '#6854d9';
   if ($('profilePhoto')) $('profilePhoto').value = '';
-  const status = $('profilePhotoStatus');
-  if (status) status.textContent = '';
+  if ($('profilePhotoStatus')) $('profilePhotoStatus').textContent = '';
   if ($('characterHeading')) $('characterHeading').textContent = t(appState.lang, profile ? 'playerEdit' : 'playerCreate');
   renderAvatarChoices();
   setScreen('characterScreen');
   $('profileName')?.focus();
 }
-
 async function readProfilePhoto(file) {
   if (!file || !file.type.startsWith('image/')) return;
   const dataUrl = await new Promise((resolve, reject) => {
@@ -209,10 +184,8 @@ async function readProfilePhoto(file) {
     reader.readAsDataURL(file);
   });
   appState.avatar = dataUrl;
-  const status = $('profilePhotoStatus');
-  if (status) status.textContent = t(appState.lang, 'photoReady');
+  if ($('profilePhotoStatus')) $('profilePhotoStatus').textContent = t(appState.lang, 'photoReady');
 }
-
 function saveProfile() {
   const profile = {
     id: appState.editingId || randomId(),
@@ -220,11 +193,8 @@ function saveProfile() {
     color: $('profileColor')?.value || '#6854d9',
     avatar: appState.avatar || '🎉'
   };
-  if (appState.editingId) {
-    appState.profiles = appState.profiles.map((item) => item.id === appState.editingId ? profile : item);
-  } else {
-    appState.profiles.push(profile);
-  }
+  if (appState.editingId) appState.profiles = appState.profiles.map((item) => item.id === appState.editingId ? profile : item);
+  else appState.profiles.push(profile);
   saveProfiles(appState.profiles);
   appState.activeId = profile.id;
   appState.editingId = null;
@@ -232,21 +202,18 @@ function saveProfile() {
   renderActiveProfileBadge();
   setScreen('playersScreen');
 }
-
 function continueWithPlayer() {
   if (!activeProfile()) return;
   const heading = $('welcomeTitle');
   if (heading) heading.textContent = t(appState.lang, 'great', { name: activeProfile().name || 'Guest' });
   setScreen('setupScreen');
 }
-
 function speakCurrentWord() {
   const word = appState.round[appState.index];
   if (!word) return;
   if (!('speechSynthesis' in window)) return alert(t(appState.lang, 'toastSpeech'));
   speakWord(word, appState.voice);
 }
-
 function askQuestion() {
   if (appState.index >= appState.round.length) return finishGame();
   if ($('progressText')) $('progressText').textContent = t(appState.lang, 'progress', { n: String(appState.index + 1), total: String(appState.round.length) });
@@ -256,7 +223,6 @@ function askQuestion() {
   appState.locked = false;
   speakCurrentWord();
 }
-
 function startGame() {
   const groups = readWordGroups();
   const words = [...new Set((groups[appState.selected] || []).map((word) => String(word).trim()).filter(Boolean))];
@@ -268,17 +234,11 @@ function startGame() {
   setScreen('gameScreen');
   askQuestion();
 }
-
 function finishGame() {
   if ('speechSynthesis' in window) speechSynthesis.cancel();
   const score = appState.results.filter((result) => result.correct).length;
   const profile = activeProfile();
-  const entry = {
-    date: new Date().toISOString(), player: profile?.name || '', avatar: profile?.avatar || '🎉',
-    color: appState.selected, score, total: appState.results.length,
-    percentage: appState.results.length ? Math.round(100 * score / appState.results.length) : 0,
-    results: appState.results
-  };
+  const entry = { date: new Date().toISOString(), player: profile?.name || '', avatar: profile?.avatar || '🎉', color: appState.selected, score, total: appState.results.length, percentage: appState.results.length ? Math.round(100 * score / appState.results.length) : 0, results: appState.results };
   const entries = readHistory();
   entries.unshift(entry);
   saveHistory(entries);
@@ -291,7 +251,6 @@ function finishGame() {
   renderHistory();
   setScreen('summaryScreen');
 }
-
 function renderHistory() {
   const host = $('historyContent');
   if (!host) return;
@@ -305,7 +264,6 @@ function renderHistory() {
     $('attemptDialog')?.showModal();
   }));
 }
-
 function exportHistory() {
   const entries = readHistory();
   if (!entries.length) return alert(t(appState.lang, 'exportEmpty'));
@@ -318,7 +276,6 @@ function exportHistory() {
   link.click();
   URL.revokeObjectURL(url);
 }
-
 function applyLanguage() {
   document.documentElement.lang = appState.lang;
   document.querySelectorAll('[data-t]').forEach((node) => { node.textContent = t(appState.lang, node.dataset.t); });
@@ -330,7 +287,6 @@ function applyLanguage() {
   renderWordEditors();
   renderHistory();
 }
-
 function bindEvents() {
   $('newPlayerButton')?.addEventListener('click', () => openProfileEditor());
   $('saveProfileButton')?.addEventListener('click', saveProfile);
@@ -340,12 +296,10 @@ function bindEvents() {
   $('playButton')?.addEventListener('click', speakCurrentWord);
   $('exportButton')?.addEventListener('click', exportHistory);
   $('backToSetupButton')?.addEventListener('click', () => setScreen('setupScreen'));
-
   $('profilePhoto')?.addEventListener('change', async (event) => {
     try { await readProfilePhoto(event.target.files?.[0]); }
     catch (error) { console.error(error); alert(t(appState.lang, 'photoError')); }
   });
-
   $('answerForm')?.addEventListener('submit', (event) => {
     event.preventDefault();
     if (appState.locked) return;
@@ -362,20 +316,17 @@ function bindEvents() {
     appState.locked = true;
     setTimeout(() => { appState.index += 1; askQuestion(); }, correct ? 850 : 1400);
   });
-
   document.querySelectorAll('.letter').forEach((button) => button.addEventListener('click', () => {
     const input = $('answerInput');
     if (!input) return;
     input.setRangeText(button.dataset.letter, input.selectionStart, input.selectionEnd, 'end');
     input.focus();
   }));
-
   $('languageButton')?.addEventListener('click', () => {
     appState.lang = appState.lang === 'da' ? 'en' : 'da';
     localStorage.setItem(K.l, appState.lang);
     applyLanguage();
   });
-
   $('imageFile')?.addEventListener('change', (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -387,7 +338,6 @@ function bindEvents() {
     }, (key, values = {}) => { if ($('ocrStatus')) $('ocrStatus').textContent = t(appState.lang, key, values); });
   });
 }
-
 export function initialize() {
   appState.profiles = readProfiles();
   appState.activeId = null;
