@@ -5,6 +5,10 @@ export function setAvatar(el, value) {
     const image = new Image();
     image.src = value;
     image.alt = 'avatar';
+    image.style.width = '100%';
+    image.style.height = '100%';
+    image.style.objectFit = 'cover';
+    image.style.borderRadius = 'inherit';
     el.appendChild(image);
     return;
   }
