@@ -1,36 +1,128 @@
-import { C, colorName, escHtml, formatDate, t } from './config.js';
-import { read, save, history, saveHistory } from './storage.js';
+import {
+  C,
+  t,
+  colorName,
+  formatDate,
+  escHtml,
+  avatarSet,
+  randomId,
+  normalizeColorId
+} from './config.js';
+import {
+  read,
+  save,
+  groups as readWordGroups,
+  saveGroups,
+  history as readHistory,
+  saveHistory,
+  profiles as readProfiles,
+  saveProfiles
+} from './storage.js';
+import { setAvatar, activeProfileFromState, profileSummary } from './profile.js';
 import { getPreferredVoice, speakWord } from './speech.js';
-import { setAvatar } from './profile.js';
+import { handleImageUpload } from './ocr.js';
+
+const K = {
+  p: 'danish-dictation-profiles',
+  h: 'danish-dictation-history',
+  l: 'danish-dictation-lang',
+  w: 'danish-dictation-words'
+};
 
 const state = {
+  lang: localStorage.getItem(K.l) || 'da',
   selected: 'green',
   round: [],
   results: [],
   index: 0,
   locked: false,
   voice: null,
-  lang: localStorage.getItem('danish-dictation-lang') || 'da',
   profiles: [],
-  activeProfileId: null
+  activeId: null,
+  editingId: null,
+  avatar: avatarSet[0] || '🎯',
+  profileColor: '#6854d9'
 };
 
-export function getState() {
-  return state;
+function $(id) {
+  return document.getElementById(id);
 }
 
-export function groups() {
-  return read('danish-dictation-words', { green: [], yellow: [], red: [] });
+function setScreen(screenId) {
+  document.querySelectorAll('.screen').forEach((screen) => {
+    screen.classList.toggle('active', screen.id === screenId);
+  });
 }
 
-export function saveGroups(groupMap) {
-  return save('danish-dictation-words', groupMap);
+function getActiveProfile() {
+  return activeProfileFromState(state.profiles, state.activeId);
 }
 
-export function renderWordEditors() {
-  const host = document.getElementById('wordEditors');
+function saveCurrentProfiles() {
+  saveProfiles(state.profiles);
+}
+
+function renderActiveProfileBadge() {
+  const badge = $('activeProfileBadge');
+  if (!badge) return;
+
+  const active = getActiveProfile();
+  if (!active) {
+    badge.hidden = true;
+    badge.textContent = '';
+    return;
+  }
+
+  badge.hidden = false;
+  badge.textContent = `${active.avatar || '🎉'} ${profileSummary(active)}`;
+}
+
+function renderProfiles() {
+  const host = $('profiles');
   if (!host) return;
-  const groupMap = groups();
+
+  host.innerHTML = '';
+  state.profiles.forEach((profile) => {
+    const card = document.createElement('article');
+    card.className = 'profile-card' + (state.activeId === profile.id ? ' selected' : '');
+    card.innerHTML = `
+      <div class="profile-avatar">${profile.avatar || '🎉'}</div>
+      <strong>${escHtml(profile.name || 'Guest')}</strong>
+      <small>${escHtml(profile.color || '#6854d9')}</small>
+    `;
+    card.addEventListener('click', () => {
+      state.activeId = profile.id;
+      renderProfiles();
+      renderActiveProfileBadge();
+      setScreen('setupScreen');
+    });
+    host.appendChild(card);
+  });
+}
+
+function renderAvatarChoices() {
+  const host = $('avatarChoices');
+  if (!host) return;
+
+  host.innerHTML = '';
+  avatarSet.forEach((item) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'chip' + (state.avatar === item ? ' active' : '');
+    button.textContent = item;
+    button.addEventListener('click', () => {
+      state.avatar = item;
+      renderAvatarChoices();
+    });
+    host.appendChild(button);
+  });
+}
+
+function renderWordEditors() {
+  const host = $('wordEditors');
+  if (!host) return;
+
+  const groupMap = readWordGroups();
   host.innerHTML = '';
 
   C.forEach((color) => {
@@ -42,46 +134,53 @@ export function renderWordEditors() {
     area.rows = 4;
     area.placeholder = t(state.lang, 'wordListHolder');
     area.value = (groupMap[color.id] || []).join('\n');
-    area.oninput = () => {
-      const updated = area.value.split(/[\n,;]+/).map((item) => item.trim()).filter(Boolean);
+    area.addEventListener('input', () => {
+      const updated = area.value
+        .split(/[\n,;]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
       groupMap[color.id] = updated;
       saveGroups(groupMap);
       updateWordCount();
-    };
-    host.appendChild(label);
-    host.appendChild(area);
+    });
+
+    const wrapper = document.createElement('div');
+    wrapper.appendChild(label);
+    wrapper.appendChild(area);
+    host.appendChild(wrapper);
   });
 
   updateWordCount();
 }
 
-export function updateWordCount() {
-  const count = document.getElementById('wordCount');
-  if (!count) return;
-  const groupMap = groups();
-  count.textContent = C.map((color) => `${colorName(state.lang, color.id)}: ${(groupMap[color.id] || []).length}`).join(' · ');
-}
-
-export function renderColorChoices() {
-  const host = document.getElementById('colorChoices');
+function renderColorChoices() {
+  const host = $('colorChoices');
   if (!host) return;
-  host.innerHTML = '';
 
+  host.innerHTML = '';
   C.forEach((color) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'color-card' + (state.selected === color.id ? ' selected' : '');
     button.innerHTML = `<span class="dot" style="background:${color.hex}"></span>${colorName(state.lang, color.id)}`;
-    button.onclick = () => {
+    button.addEventListener('click', () => {
       state.selected = color.id;
       renderColorChoices();
-    };
+    });
     host.appendChild(button);
   });
 }
 
-export function startGame() {
-  const groupMap = groups();
+function updateWordCount() {
+  const count = $('wordCount');
+  if (!count) return;
+
+  const groupMap = readWordGroups();
+  count.textContent = C.map((color) => `${colorName(state.lang, color.id)}: ${(groupMap[color.id] || []).length}`).join(' · ');
+}
+
+function startGame() {
+  const groupMap = readWordGroups();
   const words = [...new Set((groupMap[state.selected] || []).map((value) => String(value).trim()).filter(Boolean))];
 
   if (!words.length) {
@@ -93,42 +192,49 @@ export function startGame() {
   state.results = [];
   state.index = 0;
   state.locked = false;
-  document.getElementById('gameScreen')?.classList.add('active');
+
+  setScreen('gameScreen');
   askQuestion();
 }
 
-export function askQuestion() {
+function askQuestion() {
   if (state.index >= state.round.length) {
     finishGame();
     return;
   }
 
-  const progressText = document.getElementById('progressText');
-  const progressFill = document.getElementById('progressFill');
-  const answerInput = document.getElementById('answerInput');
-  const feedback = document.getElementById('feedback');
+  const progressText = $('progressText');
+  const progressFill = $('progressFill');
+  const answerInput = $('answerInput');
+  const feedback = $('feedback');
 
   if (progressText) progressText.textContent = t(state.lang, 'progress', { n: String(state.index + 1), total: String(state.round.length) });
   if (progressFill) progressFill.style.width = `${(100 * state.index) / state.round.length}%`;
   if (answerInput) answerInput.value = '';
   if (feedback) feedback.textContent = '';
+
   state.locked = false;
   speakCurrentWord();
 }
 
-export function speakCurrentWord() {
+function speakCurrentWord() {
   if (!state.round[state.index]) return;
+  if (!('speechSynthesis' in window)) {
+    alert(t(state.lang, 'toastSpeech'));
+    return;
+  }
   speakWord(state.round[state.index], state.voice);
 }
 
-export function finishGame() {
+function finishGame() {
   if ('speechSynthesis' in window) speechSynthesis.cancel();
 
   const score = state.results.filter((result) => result.correct).length;
+  const active = getActiveProfile();
   const entry = {
     date: new Date().toISOString(),
-    player: state.activeProfileId ? (state.profiles.find((p) => p.id === state.activeProfileId)?.name || '') : '',
-    avatar: state.activeProfileId ? (state.profiles.find((p) => p.id === state.activeProfileId)?.avatar || '🎉') : '🎉',
+    player: active ? active.name : '',
+    avatar: active ? active.avatar : '🎉',
     color: state.selected,
     score,
     total: state.results.length,
@@ -136,44 +242,44 @@ export function finishGame() {
     results: state.results
   };
 
-  const all = history();
+  const all = readHistory();
   all.unshift(entry);
   saveHistory(all);
 
-  const summaryAvatar = document.getElementById('summaryAvatar');
+  const summaryAvatar = $('summaryAvatar');
   if (summaryAvatar) {
     summaryAvatar.textContent = '';
     setAvatar(summaryAvatar, entry.avatar);
   }
 
-  const summaryTitle = document.getElementById('summaryTitle');
-  if (summaryTitle) summaryTitle.textContent = t(state.lang, 'great', { name: entry.player });
+  const summaryTitle = $('summaryTitle');
+  if (summaryTitle) summaryTitle.textContent = t(state.lang, 'great', { name: entry.player || 'Spiller' });
 
-  const summaryDetails = document.getElementById('summaryDetails');
+  const summaryDetails = $('summaryDetails');
   if (summaryDetails) summaryDetails.textContent = `${colorName(state.lang, entry.color)} · ${formatDate(entry.date)}`;
 
-  const scoreDisplay = document.getElementById('scoreDisplay');
+  const scoreDisplay = $('scoreDisplay');
   if (scoreDisplay) scoreDisplay.textContent = `${score}/${entry.total} (${entry.percentage}%)`;
 
-  const resultsList = document.getElementById('resultsList');
+  const resultsList = $('resultsList');
   if (resultsList) {
     resultsList.innerHTML = (state.results || []).map((item) => `
       <div class="result">
         <strong>${escHtml(item.word)}</strong>
-        <span>${item.correct ? '✅' : '✏️ ' + escHtml(item.answer)}</span>
+        <span>${item.correct ? '✅' : '✏️ ' + escHtml(item.answer || t(state.lang, 'noAnswer'))}</span>
       </div>
     `).join('');
   }
 
   renderHistory();
-  document.getElementById('summaryScreen')?.classList.add('active');
+  setScreen('summaryScreen');
 }
 
-export function renderHistory() {
-  const host = document.getElementById('historyContent');
+function renderHistory() {
+  const host = $('historyContent');
   if (!host) return;
 
-  const all = history();
+  const all = readHistory();
   if (!all.length) {
     host.innerHTML = '';
     return;
@@ -182,7 +288,7 @@ export function renderHistory() {
   host.innerHTML = all.slice(0, 10).map((entry, index) => `
     <button class="attempt-card" data-attempt="${index}" type="button">
       <span>
-        <strong>${escHtml(entry.player)}</strong>
+        <strong>${escHtml(entry.player || 'Spiller')}</strong>
         <small>${formatDate(entry.date)} · ${colorName(state.lang, entry.color)} · ${entry.score}/${entry.total}</small>
       </span>
       <strong>${entry.percentage}%</strong>
@@ -190,14 +296,14 @@ export function renderHistory() {
   `).join('');
 
   host.querySelectorAll('[data-attempt]').forEach((button) => {
-    button.onclick = () => {
+    button.addEventListener('click', () => {
       const attempt = all[Number(button.dataset.attempt)];
-      const title = document.getElementById('attemptTitle');
-      const meta = document.getElementById('attemptMeta');
-      const review = document.getElementById('attemptReview');
-      const dialog = document.getElementById('attemptDialog');
+      const title = $('attemptTitle');
+      const meta = $('attemptMeta');
+      const review = $('attemptReview');
+      const dialog = $('attemptDialog');
 
-      if (title) title.textContent = `${t(state.lang, 'historyTitle')} · ${attempt.player}`;
+      if (title) title.textContent = `${t(state.lang, 'historyTitle')} · ${attempt.player || 'Spiller'}`;
       if (meta) meta.textContent = `${formatDate(attempt.date)} · ${attempt.score}/${attempt.total}`;
       if (review) {
         review.innerHTML = (attempt.results || []).map((result) => `
@@ -209,12 +315,12 @@ export function renderHistory() {
         `).join('');
       }
       if (dialog) dialog.showModal();
-    };
+    });
   });
 }
 
-export function exportHistoryCsv() {
-  const all = history();
+function exportHistory() {
+  const all = readHistory();
   if (!all.length) {
     alert(t(state.lang, 'exportEmpty'));
     return;
@@ -234,27 +340,14 @@ export function exportHistoryCsv() {
   URL.revokeObjectURL(url);
 }
 
-export function initGameState() {
-  state.lang = localStorage.getItem('danish-dictation-lang') || 'da';
-  state.profiles = read('danish-dictation-profiles', []);
-  state.activeProfileId = state.profiles[0]?.id || null;
-  state.voice = getPreferredVoice();
-}
-
-export function setLanguage(nextLang) {
-  state.lang = nextLang;
-  localStorage.setItem('danish-dictation-lang', nextLang);
-  applyLanguage();
-}
-
-export function applyLanguage() {
+function applyLanguage() {
   document.documentElement.lang = state.lang;
   document.querySelectorAll('[data-t]').forEach((node) => {
     const key = node.dataset.t;
     if (key) node.textContent = t(state.lang, key);
   });
 
-  const languageButton = document.getElementById('languageButton');
+  const languageButton = $('languageButton');
   if (languageButton) languageButton.textContent = state.lang === 'da' ? 'EN' : 'DA';
 
   renderColorChoices();
@@ -262,21 +355,92 @@ export function applyLanguage() {
   renderHistory();
 }
 
-export function bindEvents() {
-  const startButton = document.getElementById('startButton');
-  if (startButton) startButton.onclick = startGame;
+function openProfileEditor() {
+  state.editingId = null;
+  state.avatar = avatarSet[0] || '🎯';
+  const nameInput = $('profileName');
+  if (nameInput) nameInput.value = '';
 
-  const playButton = document.getElementById('playButton');
-  if (playButton) playButton.onclick = () => speakCurrentWord();
+  const colorInput = $('profileColor');
+  if (colorInput) colorInput.value = '#6854d9';
 
-  const answerForm = document.getElementById('answerForm');
+  const heading = $('characterHeading');
+  if (heading) heading.textContent = t(state.lang, 'playerCreate');
+
+  setScreen('characterScreen');
+}
+
+function saveProfile() {
+  const nameInput = $('profileName');
+  const colorInput = $('profileColor');
+  const name = (nameInput ? nameInput.value.trim() : '') || 'Spiller';
+  const color = colorInput ? colorInput.value : '#6854d9';
+  const profile = {
+    id: state.editingId || randomId(),
+    name,
+    avatar: state.avatar,
+    color
+  };
+
+  if (state.editingId) {
+    state.profiles = state.profiles.map((item) => item.id === state.editingId ? profile : item);
+  } else {
+    state.profiles.push(profile);
+  }
+
+  saveCurrentProfiles();
+  state.activeId = profile.id;
+  renderProfiles();
+  renderActiveProfileBadge();
+  setScreen('playersScreen');
+}
+
+function addImageWords(file) {
+  if (!file) return;
+
+  const status = $('ocrStatus');
+  const setStatus = (code, values = {}) => {
+    if (status) status.textContent = t(state.lang, code, values);
+  };
+
+  handleImageUpload(file, (wordsByColor) => {
+    const existing = readWordGroups();
+    C.forEach((color) => {
+      const merged = [...new Set([...(existing[color.id] || []), ...(wordsByColor[color.id] || [])])];
+      existing[color.id] = merged;
+    });
+    saveGroups(existing);
+    renderWordEditors();
+  }, setStatus);
+}
+
+function bindEvents() {
+  const newPlayerButton = $('newPlayerButton');
+  if (newPlayerButton) newPlayerButton.addEventListener('click', openProfileEditor);
+
+  const saveProfileButton = $('saveProfileButton');
+  if (saveProfileButton) saveProfileButton.addEventListener('click', saveProfile);
+
+  const cancelProfileButton = $('cancelProfileButton');
+  if (cancelProfileButton) cancelProfileButton.addEventListener('click', () => setScreen('playersScreen'));
+
+  const startButton = $('startButton');
+  if (startButton) startButton.addEventListener('click', startGame);
+
+  const backToSetupButton = $('backToSetupButton');
+  if (backToSetupButton) backToSetupButton.addEventListener('click', () => setScreen('setupScreen'));
+
+  const playButton = $('playButton');
+  if (playButton) playButton.addEventListener('click', speakCurrentWord);
+
+  const answerForm = $('answerForm');
   if (answerForm) {
-    answerForm.onsubmit = (event) => {
+    answerForm.addEventListener('submit', (event) => {
       event.preventDefault();
       if (state.locked) return;
 
-      const answerInput = document.getElementById('answerInput');
-      const feedback = document.getElementById('feedback');
+      const answerInput = $('answerInput');
+      const feedback = $('feedback');
       if (!answerInput || !feedback) return;
 
       const answer = answerInput.value.trim();
@@ -296,36 +460,52 @@ export function bindEvents() {
         state.index += 1;
         askQuestion();
       }, correct ? 850 : 1400);
-    };
+    });
   }
 
   document.querySelectorAll('.letter').forEach((button) => {
-    button.onclick = () => {
-      const input = document.getElementById('answerInput');
+    button.addEventListener('click', () => {
+      const input = $('answerInput');
       if (!input) return;
       input.setRangeText(button.dataset.letter, input.selectionStart, input.selectionEnd, 'end');
       input.focus();
-    };
+    });
   });
 
-  const exportButton = document.getElementById('exportButton');
-  if (exportButton) exportButton.onclick = exportHistoryCsv;
+  const exportButton = $('exportButton');
+  if (exportButton) exportButton.addEventListener('click', exportHistory);
 
-  const languageButton = document.getElementById('languageButton');
+  const languageButton = $('languageButton');
   if (languageButton) {
-    languageButton.onclick = () => {
-      setLanguage(state.lang === 'da' ? 'en' : 'da');
-    };
+    languageButton.addEventListener('click', () => {
+      state.lang = state.lang === 'da' ? 'en' : 'da';
+      localStorage.setItem(K.l, state.lang);
+      applyLanguage();
+    });
+  }
+
+  const imageInput = $('imageFile');
+  if (imageInput) {
+    imageInput.addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      addImageWords(file);
+    });
   }
 }
 
-export function initApp() {
-  initGameState();
-  bindEvents();
+function initialize() {
+  state.profiles = readProfiles();
+  state.activeId = state.profiles[0]?.id || null;
+  state.voice = getPreferredVoice();
+
+  renderProfiles();
+  renderAvatarChoices();
   renderColorChoices();
   renderWordEditors();
   renderHistory();
+  renderActiveProfileBadge();
   applyLanguage();
+  bindEvents();
 
   if ('speechSynthesis' in window) {
     speechSynthesis.onvoiceschanged = () => {
@@ -333,15 +513,9 @@ export function initApp() {
     };
   }
 
-  window.GameApp = window.GameApp || {};
-  window.GameApp.Game = {
-    state,
-    renderColorChoices,
-    renderWordEditors,
-    startGame,
-    speakCurrentWord,
-    renderHistory,
-    applyLanguage,
-    init: initApp
-  };
+  setScreen('playersScreen');
 }
+
+initialize();
+
+export { initialize, renderProfiles, renderHistory, renderColorChoices, renderWordEditors, startGame, speakCurrentWord, applyLanguage };
