@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>OCR tests</title></head>
+<body>
+  <pre id="result">Running</pre>
+  <script type="module">
+    import { classifyWordFromImage, handleImageUpload } from '../js/ocr.js';
+
+    const assert = (condition, message) => { if (!condition) throw new Error(message); };
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 80;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fffaf1';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const colors = ['#111111', '#249867', '#d4a52a', '#d34d4d'];
+    const names = ['black', 'green', 'yellow', 'red'];
+    const boxes = colors.map((color, i) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(i * 100 + 20, 20, 60, 40);
+      return { x0: i * 100, y0: 0, x1: (i + 1) * 100, y1: 80 };
+    });
+
+    try {
+      assert(classifyWordFromImage(canvas, boxes[0]) === null, 'Black text must not be classified');
+      names.slice(1).forEach((name, i) => {
+        assert(classifyWordFromImage(canvas, boxes[i + 1]) === name, `${name} text must be classified`);
+      });
+
+      let recognized = names.map((text, i) => ({ text, bbox: boxes[i], confidence: 95 }));
+      window.Tesseract = {
+        async createWorker() {
+          let pass = 0;
+          return {
+            async recognize() {
+              const scale = pass++ === 0 ? 1 : 2;
+              return { data: { words: recognized.map((word) => ({
+                ...word,
+                bbox: Object.fromEntries(Object.entries(word.bbox).map(([key, value]) => [key, value * scale]))
+              })) } };
+            },
+            async terminate() {}
+          };
+        }
+      };
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      const image = new File([blob], 'colors.png', { type: 'image/png' });
+      const status = [];
+      const result = await handleImageUpload(image, () => {}, (key) => status.push(key));
+      names.slice(1).forEach((name) => {
+        assert(result[name].length === 1 && result[name][0] === name, `${name} word should appear once`);
+      });
+      assert(Object.values(result).flat().length === 3, 'Black words must be excluded');
+      assert(status.at(-1) === 'ocrDone', 'Successful recognition must be reported');
+
+      recognized = [recognized[0]];
+      const emptyStatus = [];
+      const empty = await handleImageUpload(image, () => {}, (key) => emptyStatus.push(key));
+      assert(Object.values(empty).flat().length === 0, 'Black-only input must have no words');
+      assert(emptyStatus.at(-1) === 'ocrNoColoredWords', 'Black-only input must report no colored words');
+      document.querySelector('#result').textContent = 'PASS';
+    } catch (error) {
+      console.error(error);
+      document.querySelector('#result').textContent = `FAIL: ${error.message}`;
+    }
+  </script>
+</body>
+</html>
