@@ -6,125 +6,97 @@
   <meta name="theme-color" content="#fff8e9">
   <title>Pixel Hero Avatar Maker</title>
   <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#24304a;background:#fff8e9}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 10% 3%,#fff 0,transparent 36%),#fff8e9}.wrap{width:min(920px,100% - 32px);margin:0 auto;padding:24px 0 48px}.back{color:#5141bd;font-weight:800;text-decoration:none}.back:hover{text-decoration:underline}header{text-align:center;padding:24px 0 18px}header h1{margin:4px 0;font-size:clamp(2rem,6vw,3rem)}header p{max-width:620px;margin:8px auto;color:#667085;line-height:1.55}.card{background:#fff;border:1px solid #e8e4dc;border-radius:24px;padding:clamp(16px,4vw,30px);box-shadow:0 12px 35px #39334a1f}.controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}.upload,.btn,select{font:inherit;border:0;border-radius:12px;padding:11px 15px;font-weight:800}.upload,.btn{background:#6854d9;color:white;cursor:pointer}.upload input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}.upload:focus-within,button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #edc74d;outline-offset:3px}.controls label:not(.upload){font-weight:750}.controls select{background:#f2efff;color:#302657;border:1px solid #ded8ff}.preview{min-height:340px;display:grid;place-items:center;background:repeating-conic-gradient(#f7f5ef 0% 25%,#fff 0% 50%) 50%/24px 24px;border:2px dashed #ded9cc;border-radius:18px;padding:18px}.empty{text-align:center;color:#667085}.empty strong{display:block;color:#24304a;font-size:1.15rem}.empty p{max-width:430px;line-height:1.5}.canvas-wrap{display:none;padding:10px;background:#fff;border:5px solid #24304a;box-shadow:8px 8px 0 #edc74d;image-rendering:pixelated}.canvas-wrap canvas{display:block;width:min(64vw,420px);height:auto;image-rendering:pixelated}.actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:24px 0 10px}.btn.secondary{background:#edf0f7;color:#24304a}.btn:disabled{opacity:.48;cursor:not-allowed}.note,.status{text-align:center;color:#667085;line-height:1.5}.status{min-height:1.5em;color:#5141bd;font-weight:750}.note{font-size:.92rem;margin-bottom:0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:520px){.controls{justify-content:stretch}.controls>*{flex:1}.controls select{min-width:130px}.preview{min-height:260px}}
+    :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#24304a;background:#fff8e9}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 10% 3%,#fff 0,transparent 36%),#fff8e9}.wrap{width:min(920px,100% - 32px);margin:0 auto;padding:24px 0 48px}.back{color:#5141bd;font-weight:800;text-decoration:none}.back:hover{text-decoration:underline}header{text-align:center;padding:24px 0 18px}header h1{margin:4px 0;font-size:clamp(2rem,6vw,3rem)}header p{max-width:620px;margin:8px auto;color:#667085;line-height:1.55}.card{background:#fff;border:1px solid #e8e4dc;border-radius:24px;padding:clamp(16px,4vw,30px);box-shadow:0 12px 35px #39334a1f}.controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}.upload,.btn,select{font:inherit;border:0;border-radius:12px;padding:11px 15px;font-weight:800}.upload,.btn{background:#6854d9;color:white;cursor:pointer}.upload input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}.upload:focus-within,button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #edc74d;outline-offset:3px}.controls label:not(.upload){font-weight:750}.controls select{background:#f2efff;color:#302657;border:1px solid #ded8ff}.preview{min-height:340px;display:grid;place-items:center;background:repeating-conic-gradient(#f7f5ef 0% 25%,#fff 0% 50%) 50%/24px 24px;border:2px dashed #ded9cc;border-radius:18px;padding:18px}.empty{text-align:center;color:#667085}.empty strong{display:block;color:#24304a;font-size:1.15rem}.empty p{max-width:430px;line-height:1.5}.canvas-wrap{display:none;padding:10px;background:#fff;border:5px solid #24304a;box-shadow:8px 8px 0 #edc74d;image-rendering:pixelated}.canvas-wrap canvas{display:block;width:min(64vw,420px);height:auto;image-rendering:pixelated}.actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:24px 0 10px}.btn.secondary{background:#edf0f7;color:#24304a}.btn:disabled{opacity:.48;cursor:not-allowed}.note,.status{text-align:center;color:#667085;line-height:1.5}.status{min-height:1.5em;color:#5141bd;font-weight:750}.note{font-size:.92rem;margin-bottom:0}@media(max-width:520px){.controls{justify-content:stretch}.controls>*{flex:1}.controls select{min-width:130px}.preview{min-height:260px}}
   </style>
 </head>
 <body>
   <main class="wrap">
     <a class="back" href="index.html">← Back to Ord-eventyr</a>
-    <header><div aria-hidden="true" style="font-size:2.5rem">🕹️</div><h1>Make a Pixel Hero Avatar</h1><p>Turn a photo into a bold, colourful pixel-game portrait with a chunky frame and classic platform-adventure colours. Everything happens on your device.</p></header>
+    <header><div aria-hidden="true" style="font-size:2.5rem">🕹️</div><h1>Make a Pixel Hero Avatar</h1><p>Turn a photo into a playful game-inspired portrait. Choose a visual style, tune the pixel size, and try different colours. Everything happens on your device.</p></header>
     <section class="card" aria-label="Pixel avatar maker">
       <div class="controls">
         <label class="upload">🖼️ Choose photo or drawing<input id="photoInput" type="file" accept="image/*"></label>
-        <label for="pixelSize">Pixel size</label>
-        <select id="pixelSize" aria-label="Pixel size"><option value="48">Chunky</option><option value="72" selected>Classic</option><option value="112">Detailed</option></select>
-        <label for="background">Frame colour</label>
-        <select id="background" aria-label="Frame colour"><option value="#e94f37">Hero red</option><option value="#78d8ef">Sky blue</option><option value="#8bd17c">Green hills</option><option value="#f6c85f">Golden</option><option value="#ad8be8">Purple</option></select>
+        <label for="style">Style</label>
+        <select id="style" aria-label="Avatar style"><option value="hero">Platform hero</option><option value="comic">Comic book</option><option value="storybook">Storybook</option><option value="arcade">Arcade neon</option></select>
+        <label for="pixelSize">Detail</label>
+        <select id="pixelSize" aria-label="Pixel detail"><option value="48">Chunky</option><option value="72" selected>Classic</option><option value="112">Detailed</option></select>
+        <label for="background">Background</label>
+        <select id="background" aria-label="Avatar background"><option value="#e94f37">Hero red</option><option value="#78d8ef">Sky blue</option><option value="#8bd17c">Green hills</option><option value="#f6c85f">Golden</option><option value="#ad8be8">Purple</option></select>
       </div>
-      <div class="preview"><div id="emptyMessage" class="empty"><div style="font-size:3rem">🎨</div><strong>Your pixel hero will appear here</strong><p>Choose a clear, front-facing photo for the best result. The image is cropped to a square and converted into a limited, vivid game palette.</p></div><div class="canvas-wrap" id="canvasWrap"><canvas id="avatarCanvas" width="640" height="640" aria-label="Pixel-art avatar preview"></canvas></div></div>
+      <div class="preview"><div id="emptyMessage" class="empty"><div style="font-size:3rem">🎨</div><strong>Your pixel hero will appear here</strong><p>Choose a clear, front-facing photo for the best result. The image is cropped to a square and transformed with the style you select.</p></div><div class="canvas-wrap" id="canvasWrap"><canvas id="avatarCanvas" width="640" height="640" aria-label="Avatar preview"></canvas></div></div>
       <div class="actions"><button id="downloadButton" class="btn" type="button" disabled>⬇️ Download avatar</button><button id="clearButton" class="btn secondary" type="button" disabled>Choose another photo</button></div>
-      <p class="note">Your photo stays on this device and is not uploaded. This makes an original retro platform-game look; it does not create Mario characters or official game artwork.</p>
+      <p class="note">Your photo stays on this device and is not uploaded. Styles are original, generic game and illustration effects; they do not create Mario characters or official game artwork.</p>
       <div id="status" class="status" role="status" aria-live="polite"></div>
     </section>
   </main>
 <script>
 (() => {
   'use strict';
-  const input = document.getElementById('photoInput');
-  const sizeSelect = document.getElementById('pixelSize');
-  const backgroundSelect = document.getElementById('background');
-  const canvas = document.getElementById('avatarCanvas');
-  const ctx = canvas.getContext('2d');
-  const empty = document.getElementById('emptyMessage');
-  const canvasWrap = document.getElementById('canvasWrap');
-  const download = document.getElementById('downloadButton');
-  const clear = document.getElementById('clearButton');
-  const status = document.getElementById('status');
-  let image = null;
-
-  // A compact, warm game palette keeps the result vivid without copying a specific game.
-  const palette = ['#171c3b','#34466b','#527c83','#77a66c','#d7d17c','#fff0b0','#8c4845','#c85a45','#ef8b58','#f4bd75','#f4d2a2','#df9c73','#b96f5b','#754d66','#8c78ad','#c4b8d4','#e5e8df','#8a9da0'];
-  const bayer = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
-  const hexRgb = hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16));
-  const paletteRgb = palette.map(hexRgb);
-
-  function nearestColor(r,g,b,x,y) {
-    // Ordered dithering adds a little texture to smooth photo areas at small pixel sizes.
-    const threshold = (bayer[y % 4][x % 4] - 7.5) * 2.2;
-    r = Math.max(0,Math.min(255,r+threshold));
-    g = Math.max(0,Math.min(255,g+threshold));
-    b = Math.max(0,Math.min(255,b+threshold));
-    let best = 0, distance = Infinity;
-    for (let i=0;i<paletteRgb.length;i++) {
-      const p=paletteRgb[i], dr=r-p[0], dg=g-p[1], db=b-p[2];
-      const d=dr*dr*0.3+dg*dg*0.59+db*db*0.11;
-      if(d<distance){distance=d;best=i;}
-    }
-    return paletteRgb[best];
+  const input=document.getElementById('photoInput'),sizeSelect=document.getElementById('pixelSize');
+  const styleSelect=document.getElementById('style'),backgroundSelect=document.getElementById('background');
+  const canvas=document.getElementById('avatarCanvas'),ctx=canvas.getContext('2d');
+  const empty=document.getElementById('emptyMessage'),canvasWrap=document.getElementById('canvasWrap');
+  const download=document.getElementById('downloadButton'),clear=document.getElementById('clearButton'),status=document.getElementById('status');
+  let image=null;
+  const palettes={
+    hero:['#171c3b','#34466b','#527c83','#77a66c','#d7d17c','#fff0b0','#8c4845','#c85a45','#ef8b58','#f4bd75','#f4d2a2','#df9c73','#b96f5b','#754d66','#8c78ad','#c4b8d4','#e5e8df','#8a9da0'],
+    comic:['#111827','#27364b','#315d74','#39835c','#a9b747','#fff2c2','#702b3d','#c53d35','#f06d3a','#f7ba42','#ffe0a0','#cd7958','#784451','#51376b','#7759a5','#c9a8d7','#f2eadc','#8ea8aa'],
+    storybook:['#273852','#526878','#72958b','#a5b88a','#d7c792','#fff0d3','#a56566','#d28a75','#e6aa79','#f1cd9b','#fae2bd','#d39a82','#af776f','#8a7189','#a596ad','#d5c9c7','#f1eee3','#9eaaa0'],
+    arcade:['#101735','#263c70','#276c91','#1c9a82','#88ce67','#e8ff90','#8d347d','#e83d77','#ff744e','#ffc247','#fff2a1','#ff9a72','#bc4b8e','#5d4cb1','#8876ff','#c4b9ff','#ebf8ff','#6ce5d2']
+  };
+  const bayer=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+  const hexRgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+  function nearestColor(r,g,b,x,y,palette,dither=true){
+    if(dither){const threshold=(bayer[y%4][x%4]-7.5)*2.2;r=Math.max(0,Math.min(255,r+threshold));g=Math.max(0,Math.min(255,g+threshold));b=Math.max(0,Math.min(255,b+threshold));}
+    let best=0,distance=Infinity;
+    for(let i=0;i<palette.length;i++){const p=palette[i],dr=r-p[0],dg=g-p[1],db=b-p[2],d=dr*dr*.3+dg*dg*.59+db*db*.11;if(d<distance){distance=d;best=i;}}
+    return palette[best];
   }
-
-  function render() {
-    if (!image) return;
-    const size = Number(sizeSelect.value);
-    const small = document.createElement('canvas');
-    small.width = size; small.height = size;
-    const smallCtx = small.getContext('2d', { willReadFrequently: true });
-    const frame = backgroundSelect.value;
-    const side = Math.min(image.naturalWidth, image.naturalHeight);
-    const sx = (image.naturalWidth-side)/2, sy = (image.naturalHeight-side)/2;
-    smallCtx.fillStyle = frame;
-    smallCtx.fillRect(0,0,size,size);
-    // The photo fills the portrait, with a bright stepped frame for a game-avatar feel.
-    const inset = Math.max(4,Math.round(size*0.055));
-    smallCtx.fillStyle = '#171c3b';
-    smallCtx.fillRect(inset-2,inset-2,size-2*(inset-2),size-2*(inset-2));
+  function render(){
+    if(!image)return;
+    const size=Number(sizeSelect.value),style=styleSelect.value,frame=backgroundSelect.value;
+    const palette=(palettes[style]||palettes.hero).map(hexRgb),small=document.createElement('canvas');
+    small.width=size;small.height=size;
+    const smallCtx=small.getContext('2d',{willReadFrequently:true});
+    const side=Math.min(image.naturalWidth,image.naturalHeight),sx=(image.naturalWidth-side)/2,sy=(image.naturalHeight-side)/2;
+    const inset=Math.max(4,Math.round(size*.055));
+    smallCtx.fillStyle=frame;smallCtx.fillRect(0,0,size,size);
+    smallCtx.fillStyle=style==='comic'?'#111827':'#171c3b';smallCtx.fillRect(inset-2,inset-2,size-2*(inset-2),size-2*(inset-2));
+    smallCtx.imageSmoothingEnabled=true;
     smallCtx.drawImage(image,sx,sy,side,side,inset,inset,size-2*inset,size-2*inset);
-    const pixels = smallCtx.getImageData(0,0,size,size);
-    for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+    const pixels=smallCtx.getImageData(0,0,size,size),data=pixels.data;
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
       const i=(y*size+x)*4;
-      const color=nearestColor(pixels.data[i],pixels.data[i+1],pixels.data[i+2],x,y);
-      pixels.data[i]=color[0]; pixels.data[i+1]=color[1]; pixels.data[i+2]=color[2];
+      if(style==='comic'){
+        // High-contrast posterization gives a hand-inked comic-print feel.
+        const l=data[i]*.3+data[i+1]*.59+data[i+2]*.11,step=l<64?0:l<128?1:l<190?2:3;
+        const tint=palette[(step*4+(x+y)%3)%palette.length];data[i]=tint[0];data[i+1]=tint[1];data[i+2]=tint[2];
+      }else{
+        const color=nearestColor(data[i],data[i+1],data[i+2],x,y,palette,style!=='storybook');
+        data[i]=color[0];data[i+1]=color[1];data[i+2]=color[2];
+      }
     }
     smallCtx.putImageData(pixels,0,0);
-    // Pixel-step highlight and dark outline remain crisp when enlarged.
-    const border=Math.max(2,Math.round(size*0.035));
-    smallCtx.fillStyle='#171c3b';
-    smallCtx.fillRect(0,0,size,border); smallCtx.fillRect(0,size-border,size,border);
-    smallCtx.fillRect(0,0,border,size); smallCtx.fillRect(size-border,0,border,size);
-    smallCtx.fillStyle=frame;
-    smallCtx.fillRect(border,border,size-2*border,Math.max(1,Math.round(border*.45)));
-    ctx.imageSmoothingEnabled=false;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(small,0,0,canvas.width,canvas.height);
-    canvasWrap.style.display='block'; empty.style.display='none';
-    download.disabled=false; clear.disabled=false;
-    status.textContent='Pixel hero ready! Try another pixel size or frame colour.';
+    if(style==='comic'){
+      smallCtx.fillStyle='#111827';const dot=Math.max(1,Math.round(size/72));
+      for(let y=dot;y<size;y+=dot*4)for(let x=dot;x<size;x+=dot*4)smallCtx.fillRect(x,y,dot,dot);
+    }
+    const border=Math.max(2,Math.round(size*.035));smallCtx.fillStyle=style==='comic'?'#111827':'#171c3b';
+    smallCtx.fillRect(0,0,size,border);smallCtx.fillRect(0,size-border,size,border);smallCtx.fillRect(0,0,border,size);smallCtx.fillRect(size-border,0,border,size);
+    smallCtx.fillStyle=frame;smallCtx.fillRect(border,border,size-2*border,Math.max(1,Math.round(border*.45)));
+    ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(small,0,0,canvas.width,canvas.height);
+    canvasWrap.style.display='block';empty.style.display='none';download.disabled=false;clear.disabled=false;
+    status.textContent='Avatar ready! Try another style, detail level, or background.';
   }
-
-  input.addEventListener('change', () => {
-    const file=input.files&&input.files[0]; if(!file)return;
+  input.addEventListener('change',()=>{
+    const file=input.files&&input.files[0];if(!file)return;
     if(!file.type.startsWith('image/')){status.textContent='Please choose an image file.';input.value='';return;}
-    const reader=new FileReader();
-    reader.onload=()=>{
-      const nextImage=new Image();
-      nextImage.onload=()=>{image=nextImage;render();};
-      nextImage.onerror=()=>{status.textContent='Could not open that image. Try another one.';};
-      nextImage.src=reader.result;
-    };
-    reader.onerror=()=>{status.textContent='Could not read that file. Try another one.';};
-    reader.readAsDataURL(file);
+    const reader=new FileReader();reader.onload=()=>{const nextImage=new Image();nextImage.onload=()=>{image=nextImage;render();};nextImage.onerror=()=>{status.textContent='Could not open that image. Try another one.';};nextImage.src=reader.result;};
+    reader.onerror=()=>{status.textContent='Could not read that file. Try another one.';};reader.readAsDataURL(file);
   });
-  sizeSelect.addEventListener('change',render);
-  backgroundSelect.addEventListener('change',render);
-  clear.addEventListener('click',()=>{
-    image=null;input.value='';canvasWrap.style.display='none';empty.style.display='block';
-    download.disabled=true;clear.disabled=true;status.textContent='Choose a photo to make a new pixel hero.';
-  });
-  download.addEventListener('click',()=>{
-    if(!image)return;
-    const link=document.createElement('a');link.download='pixel-hero-avatar.png';
-    link.href=canvas.toDataURL('image/png');link.click();
-  });
+  sizeSelect.addEventListener('change',render);styleSelect.addEventListener('change',render);backgroundSelect.addEventListener('change',render);
+  clear.addEventListener('click',()=>{image=null;input.value='';canvasWrap.style.display='none';empty.style.display='block';download.disabled=true;clear.disabled=true;status.textContent='Choose a photo to make a new avatar.';});
+  download.addEventListener('click',()=>{if(!image)return;const link=document.createElement('a');link.download='pixel-hero-avatar.png';link.href=canvas.toDataURL('image/png');link.click();});
 })();
 </script>
 </body>
