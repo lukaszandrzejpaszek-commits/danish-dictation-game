@@ -6,7 +6,7 @@ import { handleImageUpload } from './ocr.js';
 
 const appState = {
   lang: localStorage.getItem(K.l) || 'da', selected: 'green', round: [], results: [], index: 0,
-  locked: false, voice: null, profiles: [], activeId: null, editingId: null, avatar: avatarSet[0] || '🎯', questionTimer: null
+  locked: false, voice: null, speechMode: 'piper', profiles: [], activeId: null, editingId: null, avatar: avatarSet[0] || '🎯', questionTimer: null
 };
 const $ = (id) => document.getElementById(id);
 
@@ -222,6 +222,10 @@ function returnToPlayers() {
   appState.locked = false;
   appState.activeId = null;
   if ($('speechStatus')) $('speechStatus').textContent = '';
+  if ($('speechDownloadProgress')) {
+    $('speechDownloadProgress').hidden = true;
+    $('speechDownloadProgress').value = 0;
+  }
   renderProfiles();
   renderActiveProfileBadge();
   setScreen('playersScreen');
@@ -229,9 +233,16 @@ function returnToPlayers() {
 function speakCurrentWord() {
   const word = appState.round[appState.index];
   if (!word) return;
-  speakWord(word, appState.voice, (key) => {
-    if ($('speechStatus')) $('speechStatus').textContent = key ? t(appState.lang, key) : '';
-  });
+  speakWord(word, appState.voice, (key, values) => {
+    const status = $('speechStatus');
+    const downloadProgress = $('speechDownloadProgress');
+    if (status) status.textContent = key ? t(appState.lang, key, values) : '';
+    if (downloadProgress) {
+      const isDownloading = key === 'voiceDownloading' && Number.isFinite(values.percent);
+      downloadProgress.hidden = !isDownloading;
+      if (isDownloading) downloadProgress.value = values.percent;
+    }
+  }, appState.speechMode);
 }
 function askQuestion() {
   if (appState.index >= appState.round.length) return finishGame();
@@ -246,12 +257,17 @@ function startGame() {
   const groups = readWordGroups();
   const words = [...new Set((groups[appState.selected] || []).map((word) => String(word).trim()).filter(Boolean))];
   if (!words.length) return alert(t(appState.lang, 'toastNoWords'));
+  appState.speechMode = $('speechMode')?.value === 'browser' ? 'browser' : 'piper';
   appState.round = words.sort(() => Math.random() - 0.5);
   appState.results = [];
   appState.index = 0;
   appState.locked = false;
   setScreen('gameScreen');
   askQuestion();
+}
+function updateVoiceChoice() {
+  const info = $('voiceModelInfo');
+  if (info) info.hidden = $('speechMode')?.value !== 'piper';
 }
 function finishGame() {
   cancelSpeech();
@@ -311,6 +327,8 @@ function bindEvents() {
   $('saveProfileButton')?.addEventListener('click', saveProfile);
   $('cancelProfileButton')?.addEventListener('click', () => { appState.editingId = null; setScreen('playersScreen'); });
   $('continueWithPlayerButton')?.addEventListener('click', continueWithPlayer);
+  $('backToPlayersFromSetupButton')?.addEventListener('click', returnToPlayers);
+  $('speechMode')?.addEventListener('change', updateVoiceChoice);
   $('startButton')?.addEventListener('click', startGame);
   $('backToPlayersButton')?.addEventListener('click', returnToPlayers);
   $('playButton')?.addEventListener('click', speakCurrentWord);
@@ -374,6 +392,7 @@ export function initialize() {
   renderWordEditors();
   renderHistory();
   applyLanguage();
+  updateVoiceChoice();
   bindEvents();
   if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { appState.voice = getPreferredVoice(); };
   setScreen('playersScreen');
