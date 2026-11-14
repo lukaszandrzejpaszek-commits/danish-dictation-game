@@ -43,14 +43,14 @@ export function getPreferredVoice() {
   return preferred;
 }
 
-function updateSpeechStatus(key, values = {}) {
-  if (typeof activeStatusHandler === 'function') activeStatusHandler(key, values);
+function updateSpeechStatus(key, values = {}, request = speechRequest) {
+  if (request === speechRequest && typeof activeStatusHandler === 'function') activeStatusHandler(key, values);
 }
 
-function reportCacheIssue(key, error) {
+function reportCacheIssue(key, error, request) {
   voiceCacheWarning = key;
   console.warn('Could not persist the Danish voice model in this browser.', error);
-  updateSpeechStatus(key);
+  updateSpeechStatus(key, {}, request);
 }
 
 function createPersistentVoiceProvider() {
@@ -59,27 +59,27 @@ function createPersistentVoiceProvider() {
   const metadata = new Map();
   const modelUrls = new Map();
 
-  async function getCache() {
+  async function getCache(request) {
     if (!cacheChecked) {
       cacheChecked = true;
       if (!('caches' in window)) {
-        reportCacheIssue('voiceCacheUnavailable', new Error('Cache API is unavailable'));
+        reportCacheIssue('voiceCacheUnavailable', new Error('Cache API is unavailable'), request);
         return null;
       }
       cachePromise = caches.open(PIPER_MODEL_CACHE).catch((error) => {
-        reportCacheIssue('voiceCacheUnavailable', error);
+        reportCacheIssue('voiceCacheUnavailable', error, request);
         return null;
       });
     }
     return cachePromise;
   }
 
-  async function cacheResponse(cache, url, response) {
+  async function cacheResponse(cache, url, response, request) {
     if (!cache) return;
     try {
       await cache.put(url, response);
     } catch (error) {
-      reportCacheIssue('voiceCacheFailed', error);
+      reportCacheIssue('voiceCacheFailed', error, request);
     }
   }
 
@@ -91,16 +91,17 @@ function createPersistentVoiceProvider() {
 
   return {
     async fetch(url) {
+      const request = speechRequest;
       if (metadata.has(url)) return metadata.get(url);
       if (modelUrls.has(url)) return modelUrls.get(url);
 
-      const cache = await getCache();
+      const cache = await getCache(request);
       let cachedResponse = null;
       if (cache) {
         try {
           cachedResponse = await cache.match(url);
         } catch (error) {
-          reportCacheIssue('voiceCacheUnavailable', error);
+          reportCacheIssue('voiceCacheUnavailable', error, request);
         }
       }
 
@@ -110,7 +111,7 @@ function createPersistentVoiceProvider() {
           metadata.set(url, value);
           return value;
         }
-        updateSpeechStatus('voiceCached');
+        updateSpeechStatus('voiceCached', {}, request);
         return makeModelUrl(url, await cachedResponse.blob());
       }
 
@@ -122,7 +123,7 @@ function createPersistentVoiceProvider() {
         metadata.set(url, value);
         await cacheResponse(cache, url, new Response(JSON.stringify(value), {
           headers: { 'Content-Type': 'application/json' }
-        }));
+        }), request);
         return value;
       }
 
@@ -144,7 +145,7 @@ function createPersistentVoiceProvider() {
               percent,
               downloaded: (loaded / 1000000).toFixed(1),
               total: (total / 1000000).toFixed(1)
-            });
+            }, request);
             reportedPercent = percent;
           }
         }
@@ -155,12 +156,12 @@ function createPersistentVoiceProvider() {
           percent: 100,
           downloaded: (blob.size / 1000000).toFixed(1),
           total: (total / 1000000).toFixed(1)
-        });
+        }, request);
       }
 
       await cacheResponse(cache, url, new Response(blob, {
         headers: { 'Content-Type': blob.type || 'application/octet-stream' }
-      }));
+      }), request);
       return makeModelUrl(url, blob);
     },
     destroy() {

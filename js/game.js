@@ -120,16 +120,25 @@ function renderColorChoices() {
     const dot = document.createElement('span');
     dot.className = 'dot';
     dot.style.backgroundColor = color.hex;
-    button.append(dot, document.createTextNode(colorName(appState.lang, color.id)));
+    const count = document.createElement('span');
+    count.className = 'color-count';
+    count.dataset.colorCount = color.id;
+    button.append(dot, document.createTextNode(colorName(appState.lang, color.id)), count);
     button.addEventListener('click', () => { appState.selected = color.id; renderColorChoices(); });
     host.appendChild(button);
   });
+  updateWordCount();
 }
 function updateWordCount() {
-  const count = $('wordCount');
-  if (!count) return;
+  const host = $('colorChoices');
+  if (!host) return;
   const groups = readWordGroups();
-  count.textContent = C.map((color) => `${colorName(appState.lang, color.id)}: ${(groups[color.id] || []).length}`).join(' · ');
+  C.forEach((color) => {
+    const count = host.querySelector(`[data-color-count="${color.id}"]`);
+    if (!count) return;
+    const words = new Set((groups[color.id] || []).map((word) => String(word).trim()).filter(Boolean));
+    count.textContent = String(words.size);
+  });
 }
 function renderWordEditors() {
   const host = $('wordEditors');
@@ -244,6 +253,23 @@ function speakCurrentWord() {
     }
   }, appState.speechMode);
 }
+function updateVoiceToggle(groupName, toggleId) {
+  const mode = document.querySelector(`input[name="${groupName}"]:checked`)?.value === 'browser' ? 'browser' : 'piper';
+  const toggle = $(toggleId);
+  if (toggle) {
+    toggle.classList.toggle('browser-selected', mode === 'browser');
+    toggle.querySelectorAll('.voice-option').forEach((option) => {
+      option.classList.toggle('selected', option.querySelector('input')?.checked === true);
+    });
+  }
+  return mode;
+}
+function updateGameVoiceChoice(replayCurrentWord = true) {
+  appState.speechMode = updateVoiceToggle('gameSpeechMode', 'gameSpeechModeToggle');
+  const info = $('gameVoiceModelInfo');
+  if (info) info.hidden = appState.speechMode !== 'piper';
+  if (replayCurrentWord) speakCurrentWord();
+}
 function askQuestion() {
   if (appState.index >= appState.round.length) return finishGame();
   if ($('progressText')) $('progressText').textContent = t(appState.lang, 'progress', { n: String(appState.index + 1), total: String(appState.round.length) });
@@ -257,7 +283,10 @@ function startGame() {
   const groups = readWordGroups();
   const words = [...new Set((groups[appState.selected] || []).map((word) => String(word).trim()).filter(Boolean))];
   if (!words.length) return alert(t(appState.lang, 'toastNoWords'));
-  appState.speechMode = $('speechMode')?.value === 'browser' ? 'browser' : 'piper';
+  appState.speechMode = updateVoiceToggle('speechMode', 'speechModeToggle');
+  const gameVoiceInput = document.querySelector(`input[name="gameSpeechMode"][value="${appState.speechMode}"]`);
+  if (gameVoiceInput) gameVoiceInput.checked = true;
+  updateGameVoiceChoice(false);
   appState.round = words.sort(() => Math.random() - 0.5);
   appState.results = [];
   appState.index = 0;
@@ -266,8 +295,9 @@ function startGame() {
   askQuestion();
 }
 function updateVoiceChoice() {
+  const mode = updateVoiceToggle('speechMode', 'speechModeToggle');
   const info = $('voiceModelInfo');
-  if (info) info.hidden = $('speechMode')?.value !== 'piper';
+  if (info) info.hidden = mode !== 'piper';
 }
 function finishGame() {
   cancelSpeech();
@@ -328,7 +358,8 @@ function bindEvents() {
   $('cancelProfileButton')?.addEventListener('click', () => { appState.editingId = null; setScreen('playersScreen'); });
   $('continueWithPlayerButton')?.addEventListener('click', continueWithPlayer);
   $('backToPlayersFromSetupButton')?.addEventListener('click', returnToPlayers);
-  $('speechMode')?.addEventListener('change', updateVoiceChoice);
+  document.querySelectorAll('input[name="speechMode"]').forEach((input) => input.addEventListener('change', updateVoiceChoice));
+  document.querySelectorAll('input[name="gameSpeechMode"]').forEach((input) => input.addEventListener('change', () => updateGameVoiceChoice()));
   $('startButton')?.addEventListener('click', startGame);
   $('backToPlayersButton')?.addEventListener('click', returnToPlayers);
   $('playButton')?.addEventListener('click', speakCurrentWord);
