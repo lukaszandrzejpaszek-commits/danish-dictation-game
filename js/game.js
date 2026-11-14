@@ -14,12 +14,10 @@ const appState = {
   voice: null,
   profiles: [],
   activeId: null,
-  avatar: '🎯'
+  avatar: avatarSet[0] || '🎯'
 };
 
-function $(id) {
-  return document.getElementById(id);
-}
+const $ = (id) => document.getElementById(id);
 
 function setScreen(id) {
   document.querySelectorAll('.screen').forEach((screen) => {
@@ -27,35 +25,63 @@ function setScreen(id) {
   });
 }
 
-function getActiveProfile() {
+function activeProfile() {
   return activeProfileFromState(appState.profiles, appState.activeId);
+}
+
+function makeAvatar(className, value) {
+  const avatar = document.createElement('span');
+  avatar.className = className;
+  setAvatar(avatar, value || '🎉');
+  const image = avatar.querySelector('img');
+  if (image) {
+    image.style.width = '100%';
+    image.style.height = '100%';
+    image.style.objectFit = 'cover';
+    image.style.borderRadius = 'inherit';
+  }
+  return avatar;
 }
 
 function renderActiveProfileBadge() {
   const badge = $('activeProfileBadge');
   if (!badge) return;
-  const profile = getActiveProfile();
+  const profile = activeProfile();
+  badge.replaceChildren();
   badge.hidden = !profile;
-  badge.textContent = profile ? `${profile.avatar || '🎉'} ${profileSummary(profile)}` : '';
+  if (!profile) return;
+
+  badge.appendChild(makeAvatar('profile-badge-avatar', profile.avatar));
+  const name = document.createElement('span');
+  name.textContent = profileSummary(profile);
+  badge.appendChild(name);
 }
 
 function renderProfiles() {
   const host = $('profiles');
   if (!host) return;
+  host.replaceChildren();
 
-  host.innerHTML = '';
   appState.profiles.forEach((profile) => {
-    const card = document.createElement('article');
+    const card = document.createElement('button');
+    card.type = 'button';
     card.className = 'profile-card' + (appState.activeId === profile.id ? ' selected' : '');
-    card.innerHTML = `
-      <div class="profile-avatar">${profile.avatar || '🎉'}</div>
-      <strong>${escHtml(profile.name || 'Guest')}</strong>
-      <small>${escHtml(profile.color || '#6854d9')}</small>
-    `;
+    card.appendChild(makeAvatar('profile-avatar', profile.avatar));
+
+    const name = document.createElement('strong');
+    name.textContent = profile.name || 'Guest';
+    card.appendChild(name);
+
+    const color = document.createElement('small');
+    color.textContent = profile.color || '#6854d9';
+    card.appendChild(color);
+
     card.addEventListener('click', () => {
       appState.activeId = profile.id;
       renderProfiles();
       renderActiveProfileBadge();
+      const heading = $('welcomeTitle');
+      if (heading) heading.textContent = t(appState.lang, 'great', { name: profile.name || 'Guest' });
       setScreen('setupScreen');
     });
     host.appendChild(card);
@@ -65,8 +91,7 @@ function renderProfiles() {
 function renderAvatarChoices() {
   const host = $('avatarChoices');
   if (!host) return;
-
-  host.innerHTML = '';
+  host.replaceChildren();
   avatarSet.forEach((icon) => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -83,13 +108,15 @@ function renderAvatarChoices() {
 function renderColorChoices() {
   const host = $('colorChoices');
   if (!host) return;
-
-  host.innerHTML = '';
+  host.replaceChildren();
   C.forEach((color) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'color-card' + (appState.selected === color.id ? ' selected' : '');
-    button.innerHTML = `<span class="dot" style="background:${color.hex}"></span>${colorName(appState.lang, color.id)}`;
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.style.backgroundColor = color.hex;
+    button.append(dot, document.createTextNode(colorName(appState.lang, color.id)));
     button.addEventListener('click', () => {
       appState.selected = color.id;
       renderColorChoices();
@@ -101,236 +128,198 @@ function renderColorChoices() {
 function updateWordCount() {
   const count = $('wordCount');
   if (!count) return;
-
-  const groupMap = readWordGroups();
-  count.textContent = C.map((color) => `${colorName(appState.lang, color.id)}: ${(groupMap[color.id] || []).length}`).join(' · ');
+  const wordGroups = readWordGroups();
+  count.textContent = C.map((color) => `${colorName(appState.lang, color.id)}: ${(wordGroups[color.id] || []).length}`).join(' · ');
 }
 
 function renderWordEditors() {
   const host = $('wordEditors');
   if (!host) return;
-
-  const groupMap = readWordGroups();
-  host.innerHTML = '';
-
+  const wordGroups = readWordGroups();
+  host.replaceChildren();
   C.forEach((color) => {
+    const wrapper = document.createElement('div');
     const label = document.createElement('label');
     label.className = 'label';
     label.textContent = colorName(appState.lang, color.id);
-
     const area = document.createElement('textarea');
     area.rows = 4;
     area.placeholder = t(appState.lang, 'wordListHolder');
-    area.value = (groupMap[color.id] || []).join('\n');
+    area.value = (wordGroups[color.id] || []).join('\n');
     area.addEventListener('input', () => {
-      const updated = area.value
-        .split(/[\n,;]+/)
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      groupMap[color.id] = updated;
-      saveGroups(groupMap);
+      wordGroups[color.id] = area.value.split(/[\n,;]+/).map((word) => word.trim()).filter(Boolean);
+      saveGroups(wordGroups);
       updateWordCount();
     });
-
-    const wrap = document.createElement('div');
-    wrap.appendChild(label);
-    wrap.appendChild(area);
-    host.appendChild(wrap);
+    wrapper.append(label, area);
+    host.appendChild(wrapper);
   });
-
   updateWordCount();
 }
 
 function openProfileEditor() {
   appState.avatar = avatarSet[0] || '🎯';
-  const nameInput = $('profileName');
-  if (nameInput) nameInput.value = '';
-  const colorInput = $('profileColor');
-  if (colorInput) colorInput.value = '#6854d9';
-
-  const heading = $('characterHeading');
-  if (heading) heading.textContent = t(appState.lang, 'playerCreate');
-
+  if ($('profileName')) $('profileName').value = '';
+  if ($('profileColor')) $('profileColor').value = '#6854d9';
+  if ($('profilePhoto')) $('profilePhoto').value = '';
+  if ($('characterHeading')) $('characterHeading').textContent = t(appState.lang, 'playerCreate');
+  renderAvatarChoices();
   setScreen('characterScreen');
+  $('profileName')?.focus();
+}
+
+async function readProfilePhoto(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  // Downsize profile photos before storing them, keeping localStorage usage modest.
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read profile image'));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error('Could not decode profile image'));
+      image.onload = () => {
+        const maxSide = 256;
+        const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+  appState.avatar = dataUrl;
+  renderAvatarChoices();
+  const status = $('profilePhotoStatus');
+  if (status) status.textContent = t(appState.lang, 'photoReady');
 }
 
 function saveProfile() {
-  const nameInput = $('profileName');
-  const colorInput = $('profileColor');
-  const name = nameInput ? nameInput.value.trim() || 'Spiller' : 'Spiller';
-  const color = colorInput ? colorInput.value : '#6854d9';
-
-  const profile = {
-    id: randomId(),
-    name,
-    avatar: appState.avatar,
-    color
-  };
-
+  const name = $('profileName')?.value.trim() || 'Spiller';
+  const color = $('profileColor')?.value || '#6854d9';
+  const profile = { id: randomId(), name, avatar: appState.avatar, color };
   appState.profiles.push(profile);
   saveProfiles(appState.profiles);
   appState.activeId = profile.id;
-
   renderProfiles();
   renderActiveProfileBadge();
   setScreen('playersScreen');
 }
 
-function startGame() {
-  const groupMap = readWordGroups();
-  const words = [...new Set((groupMap[appState.selected] || []).map((value) => String(value).trim()).filter(Boolean))];
-
-  if (!words.length) {
-    alert(t(appState.lang, 'toastNoWords'));
-    return;
-  }
-
-  appState.round = words.sort(() => Math.random() - 0.5);
-  appState.results = [];
-  appState.index = 0;
-  appState.locked = false;
-
-  setScreen('gameScreen');
-  askQuestion();
-}
-
-function askQuestion() {
-  if (appState.index >= appState.round.length) {
-    finishGame();
-    return;
-  }
-
-  const progressText = $('progressText');
-  const progressFill = $('progressFill');
-  const answerInput = $('answerInput');
-  const feedback = $('feedback');
-
-  if (progressText) progressText.textContent = t(appState.lang, 'progress', { n: String(appState.index + 1), total: String(appState.round.length) });
-  if (progressFill) progressFill.style.width = `${(100 * appState.index) / appState.round.length}%`;
-  if (answerInput) answerInput.value = '';
-  if (feedback) feedback.textContent = '';
-
-  appState.locked = false;
-  speakCurrentWord();
-}
-
 function speakCurrentWord() {
-  if (!appState.round[appState.index]) return;
+  const word = appState.round[appState.index];
+  if (!word) return;
   if (!('speechSynthesis' in window)) {
     alert(t(appState.lang, 'toastSpeech'));
     return;
   }
+  speakWord(word, appState.voice);
+}
 
-  speakWord(appState.round[appState.index], appState.voice);
+function askQuestion() {
+  if (appState.index >= appState.round.length) return finishGame();
+  const progressText = $('progressText');
+  const progressFill = $('progressFill');
+  const answerInput = $('answerInput');
+  const feedback = $('feedback');
+  if (progressText) progressText.textContent = t(appState.lang, 'progress', { n: String(appState.index + 1), total: String(appState.round.length) });
+  if (progressFill) progressFill.style.width = `${100 * appState.index / appState.round.length}%`;
+  if (answerInput) answerInput.value = '';
+  if (feedback) feedback.textContent = '';
+  appState.locked = false;
+  speakCurrentWord();
+}
+
+function startGame() {
+  const wordGroups = readWordGroups();
+  const words = [...new Set((wordGroups[appState.selected] || []).map((word) => String(word).trim()).filter(Boolean))];
+  if (!words.length) return alert(t(appState.lang, 'toastNoWords'));
+  appState.round = words.sort(() => Math.random() - 0.5);
+  appState.results = [];
+  appState.index = 0;
+  appState.locked = false;
+  setScreen('gameScreen');
+  askQuestion();
 }
 
 function finishGame() {
   if ('speechSynthesis' in window) speechSynthesis.cancel();
-
   const score = appState.results.filter((result) => result.correct).length;
-  const active = getActiveProfile();
-
+  const profile = activeProfile();
   const entry = {
     date: new Date().toISOString(),
-    player: active ? active.name : '',
-    avatar: active ? active.avatar : '🎉',
+    player: profile?.name || '',
+    avatar: profile?.avatar || '🎉',
     color: appState.selected,
     score,
     total: appState.results.length,
-    percentage: appState.results.length ? Math.round((100 * score) / appState.results.length) : 0,
+    percentage: appState.results.length ? Math.round(100 * score / appState.results.length) : 0,
     results: appState.results
   };
-
-  const all = readHistory();
-  all.unshift(entry);
-  saveHistory(all);
-
+  const entries = readHistory();
+  entries.unshift(entry);
+  saveHistory(entries);
   const summaryAvatar = $('summaryAvatar');
   if (summaryAvatar) {
-    summaryAvatar.textContent = '';
+    summaryAvatar.replaceChildren();
     setAvatar(summaryAvatar, entry.avatar);
+    const image = summaryAvatar.querySelector('img');
+    if (image) Object.assign(image.style, { width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' });
   }
-
-  const summaryTitle = $('summaryTitle');
-  if (summaryTitle) summaryTitle.textContent = t(appState.lang, 'great', { name: entry.player || 'Spiller' });
-
-  const resultsList = $('resultsList');
-  if (resultsList) {
-    resultsList.innerHTML = appState.results.map((item) => `
-      <div class="result">
-        <strong>${escHtml(item.word)}</strong>
-        <span>${item.correct ? '✅' : '✏️ ' + escHtml(item.answer || t(appState.lang, 'noAnswer'))}</span>
-      </div>
-    `).join('');
-  }
-
+  if ($('summaryTitle')) $('summaryTitle').textContent = t(appState.lang, 'great', { name: entry.player || 'Spiller' });
+  if ($('summaryDetails')) $('summaryDetails').textContent = `${colorName(appState.lang, entry.color)} · ${formatDate(entry.date)}`;
+  if ($('scoreDisplay')) $('scoreDisplay').textContent = `${score}/${entry.total} (${entry.percentage}%)`;
+  const list = $('resultsList');
+  if (list) list.innerHTML = appState.results.map((item) => `<div class="result"><strong>${escHtml(item.word)}</strong><span>${item.correct ? '✅' : '✏️ ' + escHtml(item.answer || t(appState.lang, 'noAnswer'))}</span></div>`).join('');
+  renderHistory();
   setScreen('summaryScreen');
 }
 
 function renderHistory() {
   const host = $('historyContent');
   if (!host) return;
-
-  const all = readHistory();
-  if (!all.length) {
-    host.innerHTML = '';
-    return;
-  }
-
-  host.innerHTML = all.slice(0, 10).map((entry, index) => `
+  const entries = readHistory();
+  host.innerHTML = entries.slice(0, 10).map((entry, index) => `
     <button class="attempt-card" data-attempt="${index}" type="button">
-      <span>
-        <strong>${escHtml(entry.player || 'Spiller')}</strong>
-        <small>${formatDate(entry.date)} · ${colorName(appState.lang, entry.color)} · ${entry.score}/${entry.total}</small>
-      </span>
+      <span><strong>${escHtml(entry.player || 'Spiller')}</strong><small>${formatDate(entry.date)} · ${colorName(appState.lang, entry.color)} · ${entry.score}/${entry.total}</small></span>
       <strong>${entry.percentage}%</strong>
-    </button>
-  `).join('');
-
-  host.querySelectorAll('[data-attempt]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const attempt = all[Number(button.dataset.attempt)];
-      const dialog = $('attemptDialog');
-      const title = $('attemptTitle');
-      const meta = $('attemptMeta');
-      const review = $('attemptReview');
-
-      if (title) title.textContent = `${t(appState.lang, 'historyTitle')} · ${attempt.player || 'Spiller'}`;
-      if (meta) meta.textContent = `${formatDate(attempt.date)} · ${attempt.score}/${attempt.total}`;
-      if (review) {
-        review.innerHTML = (attempt.results || []).map((result) => `
-          <div class="review-row">
-            <span>${escHtml(result.word)}</span>
-            <strong>${result.correct ? t(appState.lang, 'right') : t(appState.lang, 'wrongMark')}</strong>
-            <span>${escHtml(result.answer || t(appState.lang, 'noAnswer'))}</span>
-          </div>
-        `).join('');
-      }
-      if (dialog) dialog.showModal();
-    });
-  });
+    </button>`).join('');
+  host.querySelectorAll('[data-attempt]').forEach((button) => button.addEventListener('click', () => {
+    const entry = entries[Number(button.dataset.attempt)];
+    if ($('attemptTitle')) $('attemptTitle').textContent = `${t(appState.lang, 'historyTitle')} · ${entry.player || 'Spiller'}`;
+    if ($('attemptMeta')) $('attemptMeta').textContent = `${formatDate(entry.date)} · ${entry.score}/${entry.total}`;
+    if ($('attemptReview')) $('attemptReview').innerHTML = (entry.results || []).map((result) => `<div class="review-row"><span>${escHtml(result.word)}</span><strong>${result.correct ? t(appState.lang, 'right') : t(appState.lang, 'wrongMark')}</strong><span>${escHtml(result.answer || t(appState.lang, 'noAnswer'))}</span></div>`).join('');
+    $('attemptDialog')?.showModal();
+  }));
 }
 
 function exportHistory() {
-  const all = readHistory();
-  if (!all.length) {
-    alert(t(appState.lang, 'exportEmpty'));
-    return;
-  }
-
-  const rows = [['Player', 'Date', 'Colour', 'Score', 'Total', 'Percent']].concat(
-    all.map((entry) => [entry.player, formatDate(entry.date), colorName(appState.lang, entry.color), entry.score, entry.total, entry.percentage])
-  );
-
+  const entries = readHistory();
+  if (!entries.length) return alert(t(appState.lang, 'exportEmpty'));
+  const rows = [['Player', 'Date', 'Colour', 'Score', 'Total', 'Percent'], ...entries.map((entry) => [entry.player, formatDate(entry.date), colorName(appState.lang, entry.color), entry.score, entry.total, entry.percentage])];
   const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
   const link = document.createElement('a');
   link.href = url;
   link.download = 'ord-eventyr-resultater.csv';
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function applyLanguage() {
+  document.documentElement.lang = appState.lang;
+  document.querySelectorAll('[data-t]').forEach((node) => {
+    node.textContent = t(appState.lang, node.dataset.t);
+  });
+  if ($('languageButton')) $('languageButton').textContent = appState.lang === 'da' ? 'EN' : 'DA';
+  renderProfiles();
+  renderActiveProfileBadge();
+  renderAvatarChoices();
+  renderColorChoices();
+  renderWordEditors();
+  renderHistory();
 }
 
 function bindEvents() {
@@ -342,41 +331,43 @@ function bindEvents() {
   $('exportButton')?.addEventListener('click', exportHistory);
   $('backToSetupButton')?.addEventListener('click', () => setScreen('setupScreen'));
 
+  $('profilePhoto')?.addEventListener('change', async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      await readProfilePhoto(file);
+    } catch (error) {
+      console.error(error);
+      alert(t(appState.lang, 'photoError'));
+    }
+  });
+
   $('answerForm')?.addEventListener('submit', (event) => {
     event.preventDefault();
     if (appState.locked) return;
-
-    const answerInput = $('answerInput');
+    const input = $('answerInput');
     const feedback = $('feedback');
-    if (!answerInput || !feedback) return;
-
-    const answer = answerInput.value.trim();
+    if (!input || !feedback) return;
+    const answer = input.value.trim();
     if (!answer) {
       feedback.textContent = t(appState.lang, 'answerEmpty');
       return;
     }
-
     const word = appState.round[appState.index];
     const correct = answer.toLocaleLowerCase('da-DK') === word.toLocaleLowerCase('da-DK');
     appState.results.push({ word, answer, correct });
     feedback.textContent = correct ? t(appState.lang, 'correct') : t(appState.lang, 'wrong', { word });
     feedback.className = 'feedback ' + (correct ? 'good' : 'bad');
     appState.locked = true;
-
-    setTimeout(() => {
-      appState.index += 1;
-      askQuestion();
-    }, correct ? 850 : 1400);
+    setTimeout(() => { appState.index += 1; askQuestion(); }, correct ? 850 : 1400);
   });
 
-  document.querySelectorAll('.letter').forEach((button) => {
-    button.addEventListener('click', () => {
-      const input = $('answerInput');
-      if (!input) return;
-      input.setRangeText(button.dataset.letter, input.selectionStart, input.selectionEnd, 'end');
-      input.focus();
-    });
-  });
+  document.querySelectorAll('.letter').forEach((button) => button.addEventListener('click', () => {
+    const input = $('answerInput');
+    if (!input) return;
+    input.setRangeText(button.dataset.letter, input.selectionStart, input.selectionEnd, 'end');
+    input.focus();
+  }));
 
   $('languageButton')?.addEventListener('click', () => {
     appState.lang = appState.lang === 'da' ? 'en' : 'da';
@@ -387,13 +378,10 @@ function bindEvents() {
   $('imageFile')?.addEventListener('change', (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     handleImageUpload(file, (wordsByColor) => {
-      const existing = readWordGroups();
-      C.forEach((color) => {
-        existing[color.id] = [...new Set([...(existing[color.id] || []), ...(wordsByColor[color.id] || [])])];
-      });
-      saveGroups(existing);
+      const groups = readWordGroups();
+      C.forEach((color) => { groups[color.id] = [...new Set([...(groups[color.id] || []), ...(wordsByColor[color.id] || [])])]; });
+      saveGroups(groups);
       renderWordEditors();
     }, (key, values = {}) => {
       const status = $('ocrStatus');
@@ -402,42 +390,18 @@ function bindEvents() {
   });
 }
 
-function applyLanguage() {
-  document.documentElement.lang = appState.lang;
-  document.querySelectorAll('[data-t]').forEach((node) => {
-    const key = node.dataset.t;
-    if (key) node.textContent = t(appState.lang, key);
-  });
-
-  const languageButton = $('languageButton');
-  if (languageButton) languageButton.textContent = appState.lang === 'da' ? 'EN' : 'DA';
-
-  renderColorChoices();
-  renderWordEditors();
-  renderHistory();
-}
-
 export function initialize() {
   appState.profiles = readProfiles();
   appState.activeId = appState.profiles[0]?.id || null;
   appState.voice = getPreferredVoice();
-
   renderProfiles();
+  renderActiveProfileBadge();
   renderAvatarChoices();
   renderColorChoices();
   renderWordEditors();
   renderHistory();
-  renderActiveProfileBadge();
   applyLanguage();
   bindEvents();
-
-  if ('speechSynthesis' in window) {
-    speechSynthesis.onvoiceschanged = () => {
-      appState.voice = getPreferredVoice();
-    };
-  }
-
+  if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { appState.voice = getPreferredVoice(); };
   setScreen('playersScreen');
 }
-
-export { startGame, speakCurrentWord, renderProfiles, renderHistory, renderColorChoices, renderWordEditors, applyLanguage };
