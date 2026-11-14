@@ -251,7 +251,7 @@ function speakCurrentWord() {
       downloadProgress.hidden = !isDownloading;
       if (isDownloading) downloadProgress.value = values.percent;
     }
-  }, appState.speechMode);
+  }, appState.speechMode, Number($('speechSpeed').value));
 }
 function updateVoiceToggle(groupName, toggleId) {
   const mode = document.querySelector(`input[name="${groupName}"]:checked`)?.value === 'browser' ? 'browser' : 'piper';
@@ -363,6 +363,9 @@ function bindEvents() {
   $('startButton')?.addEventListener('click', startGame);
   $('backToPlayersButton')?.addEventListener('click', returnToPlayers);
   $('playButton')?.addEventListener('click', speakCurrentWord);
+  $('speechSpeed')?.addEventListener('input', (event) => {
+    $('speechSpeedValue').textContent = `${Number(event.target.value).toFixed(2)}×`;
+  });
   $('exportButton')?.addEventListener('click', exportHistory);
   $('backToSetupButton')?.addEventListener('click', () => setScreen('setupScreen'));
   $('profilePhoto')?.addEventListener('change', async (event) => {

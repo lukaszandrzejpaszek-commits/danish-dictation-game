@@ -221,13 +221,13 @@ export function cancelSpeech() {
   releaseActiveAudio();
 }
 
-function speakWithBrowser(word, selectedVoice) {
+function speakWithBrowser(word, selectedVoice, speed) {
   if (!('speechSynthesis' in window)) throw new Error('Speech synthesis is not available');
 
   const utterance = new SpeechSynthesisUtterance(word);
   const preferred = selectedVoice || getPreferredVoice();
   utterance.lang = preferred?.lang || 'da-DK';
-  utterance.rate = 0.88;
+  utterance.rate = 0.88 * speed;
   utterance.pitch = 1;
   utterance.volume = 1;
 
@@ -236,7 +236,7 @@ function speakWithBrowser(word, selectedVoice) {
   return preferred?.name || preferred?.lang || 'Browser default';
 }
 
-export async function speakWord(word, selectedVoice = null, onStatus = null, mode = 'piper') {
+export async function speakWord(word, selectedVoice = null, onStatus = null, mode = 'piper', speed = 1) {
   if (!word) return;
 
   cancelSpeech();
@@ -245,7 +245,7 @@ export async function speakWord(word, selectedVoice = null, onStatus = null, mod
 
   if (mode === 'browser') {
     try {
-      setStatus(onStatus, 'browserVoiceUsed', { voice: speakWithBrowser(word, selectedVoice) });
+      setStatus(onStatus, 'browserVoiceUsed', { voice: speakWithBrowser(word, selectedVoice, speed) });
     } catch (error) {
       console.error('Browser speech failed.', error);
       setStatus(onStatus, 'voiceUnavailable');
@@ -263,6 +263,7 @@ export async function speakWord(word, selectedVoice = null, onStatus = null, mod
     piperVoiceReady = true;
     activeAudioUrl = URL.createObjectURL(result.file);
     activeAudio = new Audio(activeAudioUrl);
+    activeAudio.playbackRate = speed;
     activeAudio.addEventListener('ended', () => {
       if (currentRequest === speechRequest) releaseActiveAudio();
     }, { once: true });
@@ -274,7 +275,7 @@ export async function speakWord(word, selectedVoice = null, onStatus = null, mod
     console.error('Local Danish speech failed; using browser speech instead.', error);
     releaseActiveAudio();
     try {
-      speakWithBrowser(word, selectedVoice);
+      speakWithBrowser(word, selectedVoice, speed);
       setStatus(onStatus, 'voiceFallback');
     } catch (fallbackError) {
       console.error('Browser speech fallback failed.', fallbackError);

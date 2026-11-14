@@ -8,6 +8,7 @@ A cheerful, mobile-friendly Danish spelling game for children aged 9–11. The a
 - Extract words into Green, Yellow, and Red sections using detected text colors. Review and edit the words after OCR; color extraction depends on image quality and lighting.
 - Pick a color (its button shows the unique word count) and practise those words in a random order. The round length matches the number of unique words in the selected color list.
 - Choose local Danish Piper neural speech or a browser-installed voice for each practice round, then switch between them during dictation to compare the current word. The Piper model (~63 MB) is downloaded on first use, cached in the browser, and fetched again only if it is missing; speech is generated on-device.
+- Adjust speaking speed from 0.5× to 1.5× of the voice's default speed for the next playback. Submit an answer with Enter or the answer button.
 - Create player profiles with avatars and colors; see the active player in the header.
 - Score, percentage, per-word feedback, and attempt history saved in browser localStorage, including the attempt date and time.
 - Download attempt results as a semicolon-delimited CSV with UTF-8 BOM for spreadsheet compatibility.
