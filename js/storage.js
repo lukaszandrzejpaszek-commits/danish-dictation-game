@@ -40,3 +40,8 @@ export function profiles() {
 export function saveProfiles(entries) {
   return save(K.p, entries);
 }
+
+// Explicit domain names used by the app modules.
+export const readWordGroups = groups;
+export const readHistory = history;
+export const readProfiles = profiles;
