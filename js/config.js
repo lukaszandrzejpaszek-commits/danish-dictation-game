@@ -12,6 +12,7 @@ export const wordsT = {
     great: 'Fantastisk, {name}!', wordListHolder: 'Skriv eller indsæt ord her…', ocrLoading: 'Læser ordliste…', ocrDone: 'Klar: {n} ord fundet.', ocrError: 'Kunne ikke læse billedet.',
     toastNoWords: 'Ingen ord i denne farve. Tilføj først nogle ord.', toastSpeech: 'Denne browser understøtter ikke tale.', exportEmpty: 'Der er ingen forsøg at eksportere endnu.', languageLabel: 'DA / EN',
     playerCreate: 'Opret profil', playerEdit: 'Rediger', profileName: 'Navn', profileColor: 'Farve', profileAvatar: 'Avatar', choosePhoto: 'Vælg billede', uploadWordList: 'Upload ordliste', chooseColor: 'Vælg farve', startPractice: 'Start øvelse', startGame: 'Start spillet', backToPlayers: 'Til spillervalg',
+    voiceLoading: 'Indlæser dansk stemme (ca. 63 MB første gang)…', voiceGenerating: 'Laver lyd…', voiceFallback: 'Den lokale stemme kunne ikke bruges. Bruger browserens stemme.', voiceUnavailable: 'Der kunne ikke afspilles lyd i denne browser.',
     deletePlayer: 'Slet', confirmDeletePlayer: 'Slet profilen for {name}?', photoReady: 'Billede valgt.', photoError: 'Kunne ikke indlæse billedet.'
   },
   en: {
@@ -21,6 +22,7 @@ export const wordsT = {
     great: 'Great job, {name}!', wordListHolder: 'Type or paste words here…', ocrLoading: 'Reading the word list…', ocrDone: 'Done: {n} words found.', ocrError: 'Could not read the image.',
     toastNoWords: 'No words in this colour yet. Add some first.', toastSpeech: 'This browser does not support speech output.', exportEmpty: 'There are no results to export yet.', languageLabel: 'DA / EN',
     playerCreate: 'Create profile', playerEdit: 'Edit', profileName: 'Name', profileColor: 'Colour', profileAvatar: 'Avatar', choosePhoto: 'Choose photo', uploadWordList: 'Upload word list', chooseColor: 'Choose colour', startPractice: 'Start practice', startGame: 'Start game', backToPlayers: 'Choose player',
+    voiceLoading: 'Loading Danish voice (about 63 MB the first time)…', voiceGenerating: 'Generating audio…', voiceFallback: 'Local voice unavailable. Using browser speech instead.', voiceUnavailable: 'Audio could not be played in this browser.',
     deletePlayer: 'Delete', confirmDeletePlayer: 'Delete the profile for {name}?', photoReady: 'Photo selected.', photoError: 'Could not load the image.'
   }
 };

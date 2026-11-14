@@ -1,7 +1,7 @@
 import { K, C, t, colorName, escHtml, avatarSet, randomId, formatDate } from './config.js';
 import { readProfiles, saveProfiles, readWordGroups, saveGroups, readHistory, saveHistory } from './storage.js';
 import { setAvatar, activeProfileFromState, profileSummary } from './profile.js';
-import { getPreferredVoice, speakWord } from './speech.js';
+import { getPreferredVoice, speakWord, cancelSpeech } from './speech.js';
 import { handleImageUpload } from './ocr.js';
 
 const appState = {
@@ -213,7 +213,7 @@ function continueWithPlayer() {
   setScreen('setupScreen');
 }
 function returnToPlayers() {
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  cancelSpeech();
   clearTimeout(appState.questionTimer);
   appState.questionTimer = null;
   appState.round = [];
@@ -221,6 +221,7 @@ function returnToPlayers() {
   appState.index = 0;
   appState.locked = false;
   appState.activeId = null;
+  if ($('speechStatus')) $('speechStatus').textContent = '';
   renderProfiles();
   renderActiveProfileBadge();
   setScreen('playersScreen');
@@ -228,8 +229,9 @@ function returnToPlayers() {
 function speakCurrentWord() {
   const word = appState.round[appState.index];
   if (!word) return;
-  if (!('speechSynthesis' in window)) return alert(t(appState.lang, 'toastSpeech'));
-  speakWord(word, appState.voice);
+  speakWord(word, appState.voice, (key) => {
+    if ($('speechStatus')) $('speechStatus').textContent = key ? t(appState.lang, key) : '';
+  });
 }
 function askQuestion() {
   if (appState.index >= appState.round.length) return finishGame();
@@ -252,7 +254,7 @@ function startGame() {
   askQuestion();
 }
 function finishGame() {
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  cancelSpeech();
   const score = appState.results.filter((result) => result.correct).length;
   const profile = activeProfile();
   const entry = { date: new Date().toISOString(), player: profile?.name || '', avatar: profile?.avatar || '🎉', color: appState.selected, score, total: appState.results.length, percentage: appState.results.length ? Math.round(100 * score / appState.results.length) : 0, results: appState.results };
