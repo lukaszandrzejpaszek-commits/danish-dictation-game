@@ -6,7 +6,7 @@ import { handleImageUpload } from './ocr.js';
 
 const appState = {
   lang: localStorage.getItem(K.l) || 'da', selected: 'green', round: [], results: [], index: 0,
-  locked: false, voice: null, profiles: [], activeId: null, editingId: null, avatar: avatarSet[0] || '🎯'
+  locked: false, voice: null, profiles: [], activeId: null, editingId: null, avatar: avatarSet[0] || '🎯', questionTimer: null
 };
 const $ = (id) => document.getElementById(id);
 
@@ -27,8 +27,9 @@ function makeAvatar(className, value) {
 }
 function renderActiveProfileBadge() {
   const badge = $('activeProfileBadge');
-  if (!badge) return;
   const profile = activeProfile();
+  document.documentElement.style.setProperty('--accent', profile?.color || '#6854d9');
+  if (!badge) return;
   badge.replaceChildren();
   badge.hidden = !profile;
   if (!profile) return;
@@ -82,7 +83,10 @@ function renderProfiles() {
     host.appendChild(card);
   });
   const start = $('continueWithPlayerButton');
-  if (start) start.hidden = !activeProfile();
+  if (start) {
+    start.disabled = !activeProfile();
+    start.hidden = !activeProfile();
+  }
 }
 function deleteProfile(profile) {
   if (!window.confirm(t(appState.lang, 'confirmDeletePlayer', { name: profile.name || 'Guest' }))) return;
@@ -208,6 +212,19 @@ function continueWithPlayer() {
   if (heading) heading.textContent = t(appState.lang, 'great', { name: activeProfile().name || 'Guest' });
   setScreen('setupScreen');
 }
+function returnToPlayers() {
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  clearTimeout(appState.questionTimer);
+  appState.questionTimer = null;
+  appState.round = [];
+  appState.results = [];
+  appState.index = 0;
+  appState.locked = false;
+  appState.activeId = null;
+  renderProfiles();
+  renderActiveProfileBadge();
+  setScreen('playersScreen');
+}
 function speakCurrentWord() {
   const word = appState.round[appState.index];
   if (!word) return;
@@ -293,6 +310,7 @@ function bindEvents() {
   $('cancelProfileButton')?.addEventListener('click', () => { appState.editingId = null; setScreen('playersScreen'); });
   $('continueWithPlayerButton')?.addEventListener('click', continueWithPlayer);
   $('startButton')?.addEventListener('click', startGame);
+  $('backToPlayersButton')?.addEventListener('click', returnToPlayers);
   $('playButton')?.addEventListener('click', speakCurrentWord);
   $('exportButton')?.addEventListener('click', exportHistory);
   $('backToSetupButton')?.addEventListener('click', () => setScreen('setupScreen'));
@@ -314,7 +332,12 @@ function bindEvents() {
     feedback.textContent = correct ? t(appState.lang, 'correct') : t(appState.lang, 'wrong', { word });
     feedback.className = 'feedback ' + (correct ? 'good' : 'bad');
     appState.locked = true;
-    setTimeout(() => { appState.index += 1; askQuestion(); }, correct ? 850 : 1400);
+    clearTimeout(appState.questionTimer);
+    appState.questionTimer = setTimeout(() => {
+      appState.questionTimer = null;
+      appState.index += 1;
+      askQuestion();
+    }, correct ? 850 : 1400);
   });
   document.querySelectorAll('.letter').forEach((button) => button.addEventListener('click', () => {
     const input = $('answerInput');
