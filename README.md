@@ -5,11 +5,15 @@ A cheerful, mobile-friendly Danish spelling game for children aged 9–11. The a
 ## Features
 
 - Upload or drag in an image of a word list; OCR runs in the browser with Tesseract.js (`dan+eng`).
-- Extract words into Green, Blue, Black, and Orange sections using section headings and detected text colors. Review and edit the words after OCR—color extraction depends on the image quality and lighting.
-- Pick a color and practise **all** available words in a random order. The round length matches the number of unique words in the selected color list.
+- Extract words into Green, Yellow, and Red sections using detected text colors. Review and edit the words after OCR; color extraction depends on image quality and lighting.
+- Pick a color and practise all available words in a random order. The round length matches the number of unique words in the selected color list.
 - Danish speech synthesis (`da-DK`), replay button, answer checking, and Æ/Ø/Å insertion buttons.
-- Score, percentage, per-word feedback, and attempt history saved in browser localStorage.
+- Create player profiles with avatars and colors; see the active player in the header.
+- Score, percentage, per-word feedback, and attempt history saved in browser localStorage, including the attempt date and time.
 - Download attempt results as a semicolon-delimited CSV with UTF-8 BOM for spreadsheet compatibility.
+- **Pixel Hero Avatar Maker:** upload a photo or drawing and create a generic retro platform-game pixel-art avatar locally in your browser. [Open the avatar maker](avatar-maker.html).
+
+The avatar maker creates a general pixel-art effect, not Mario characters or official Mario artwork. Images stay on the device and are not uploaded.
 
 ## Run
 

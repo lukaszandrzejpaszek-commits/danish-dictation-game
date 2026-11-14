@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8e9">
+  <title>Pixel Hero Avatar Maker</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#24304a;background:#fff8e9}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 10% 3%,#f8e6ff 0,transparent 28rem),radial-gradient(ellipse at 95% 35%,#e0f6ff 0,transparent 30rem),#fff8e9}.wrap{width:min(820px,calc(100% - 28px));margin:auto;padding:28px 0 48px}header{text-align:center;margin:10px 0 24px}h1{font-size:clamp(1.8rem,5vw,2.7rem);margin:.3em 0}p{color:#667085;line-height:1.55}.card{background:#fffdf8;border:1px solid white;border-radius:22px;padding:clamp(18px,4vw,28px);box-shadow:0 12px 35px #39334a1f;margin-bottom:18px}.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}.btn,label.upload{border:0;border-radius:12px;background:#6854d9;color:white;padding:11px 16px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.upload input{position:absolute;width:1px;height:1px;opacity:0}.controls label.upload{position:relative}.controls select{font:inherit;border:1px solid #e8e4dc;border-radius:10px;padding:10px;background:white;color:#24304a}.preview{min-height:280px;display:grid;place-items:center;background:repeating-conic-gradient(#f3f0e9 0% 25%,#fffdf8 0% 50%) 50%/24px 24px;border-radius:18px;overflow:hidden}.preview canvas{display:none;max-width:100%;height:auto;image-rendering:pixelated}.empty{text-align:center;padding:40px 18px}.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}.btn.secondary{background:#eeeaff;color:#5542c5;text-decoration:none}.btn:disabled{opacity:.5;cursor:not-allowed}.note{font-size:.88rem}.status{min-height:1.4em;color:#168455;font-weight:700}.back{display:inline-block;margin-bottom:12px;color:#5542c5;font-weight:700}@media(max-width:560px){.controls{align-items:stretch;flex-direction:column}.controls>*{width:100%}.preview{min-height:220px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back" href="index.html">← Back to Ord-eventyr</a>
+    <header><div aria-hidden="true" style="font-size:2.5rem">🕹️</div><h1>Make a Pixel Hero Avatar</h1><p>Upload a photo or drawing and turn it into a colourful, retro platform-game pixel-art avatar. The image is processed on this device and is not uploaded.</p></header>
+    <section class="card">
+      <div class="controls">
+        <label class="upload">🖼️ Choose photo or drawing<input id="photoInput" type="file" accept="image/*"></label>
+        <label for="pixelSize">Pixel size</label>
+        <select id="pixelSize" aria-label="Pixel size"><option value="48">Chunky</option><option value="72" selected>Classic</option><option value="112">Detailed</option></select>
+        <label for="background">Background</label>
+        <select id="background" aria-label="Avatar background"><option value="#78d8ef">Sky blue</option><option value="#8bd17c">Green hills</option><option value="#f6c85f">Golden</option><option value="#db9fea">Purple</option><option value="#fffdf8">Cream</option></select>
+      </div>
+      <div class="preview"><div id="emptyMessage" class="empty"><div style="font-size:3rem">🎨</div><strong>Your pixel hero will appear here</strong><p>Choose a clear, front-facing photo or a drawing to begin.</p></div><canvas id="avatarCanvas" width="720" height="720" aria-label="Pixel-art avatar preview"></canvas></div>
+      <div class="actions"><button id="downloadButton" class="btn" type="button" disabled>⬇️ Download avatar</button><button id="clearButton" class="btn secondary" type="button" disabled>Choose another image</button></div>
+      <p class="note">Tip: a close-up portrait with a simple background usually makes the clearest avatar. This creates a generic retro pixel-art look, not a Mario character or official Mario artwork.</p>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+<script>
+(() => {
+  'use strict';
+  const input = document.getElementById('photoInput');
+  const sizeSelect = document.getElementById('pixelSize');
+  const backgroundSelect = document.getElementById('background');
+  const canvas = document.getElementById('avatarCanvas');
+  const ctx = canvas.getContext('2d');
+  const empty = document.getElementById('emptyMessage');
+  const download = document.getElementById('downloadButton');
+  const clear = document.getElementById('clearButton');
+  const status = document.getElementById('status');
+  let image = null;
+
+  function render() {
+    if (!image) return;
+    const size = Number(sizeSelect.value);
+    const small = document.createElement('canvas');
+    small.width = size;
+    small.height = size;
+    const smallCtx = small.getContext('2d', { willReadFrequently: true });
+
+    // Center-crop to a square and draw at low resolution for a pixel-art effect.
+    const side = Math.min(image.naturalWidth, image.naturalHeight);
+    const sx = (image.naturalWidth - side) / 2;
+    const sy = (image.naturalHeight - side) / 2;
+    smallCtx.fillStyle = backgroundSelect.value;
+    smallCtx.fillRect(0, 0, size, size);
+    smallCtx.imageSmoothingEnabled = true;
+    smallCtx.drawImage(image, sx, sy, side, side, 0, 0, size, size);
+
+    // Reduce color steps to create a bold, game-like palette.
+    const pixels = smallCtx.getImageData(0, 0, size, size);
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      for (let channel = 0; channel < 3; channel++) {
+        pixels.data[i + channel] = Math.round(pixels.data[i + channel] / 48) * 48;
+      }
+    }
+    smallCtx.putImageData(pixels, 0, 0);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
+    canvas.style.display = 'block';
+    empty.style.display = 'none';
+    download.disabled = false;
+    clear.disabled = false;
+    status.textContent = 'Pixel avatar ready! You can adjust the pixel size or background.';
+  }
+
+  input.addEventListener('change', () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      status.textContent = 'Please choose an image file.';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextImage = new Image();
+      nextImage.onload = () => { image = nextImage; render(); };
+      nextImage.onerror = () => { status.textContent = 'Could not open that image. Try another one.'; };
+      nextImage.src = reader.result;
+    };
+    reader.onerror = () => { status.textContent = 'Could not read that file. Try another one.'; };
+    reader.readAsDataURL(file);
+  });
+  sizeSelect.addEventListener('change', render);
+  backgroundSelect.addEventListener('change', render);
+  clear.addEventListener('click', () => {
+    image = null;
+    input.value = '';
+    canvas.style.display = 'none';
+    empty.style.display = 'block';
+    download.disabled = true;
+    clear.disabled = true;
+    status.textContent = '';
+  });
+  download.addEventListener('click', () => {
+    if (!image) return;
+    const link = document.createElement('a');
+    link.download = 'pixel-hero-avatar.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+})();
+</script>
+</body>
+</html>
