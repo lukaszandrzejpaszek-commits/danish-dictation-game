@@ -1,8 +1,8 @@
-import { K, C, t, colorName, escHtml, avatarSet, randomId, formatDate } from './config.js';
-import { readProfiles, saveProfiles, readWordGroups, saveGroups, readHistory, saveHistory } from './storage.js';
-import { setAvatar, activeProfileFromState, profileSummary } from './profile.js';
-import { getPreferredVoice, speakWord, cancelSpeech } from './speech.js';
-import { handleImageUpload } from './ocr.js';
+import { K, C, t, colorName, escHtml, avatarSet, randomId, formatDate } from './config.js?v=20261114-1';
+import { readProfiles, saveProfiles, readWordGroups, saveGroups, readHistory, saveHistory } from './storage.js?v=20261114-1';
+import { setAvatar, activeProfileFromState, profileSummary } from './profile.js?v=20261114-1';
+import { getPreferredVoice, speakWord, cancelSpeech } from './speech.js?v=20261114-1';
+import { handleImageUpload } from './ocr.js?v=20261114-1';
 
 const appState = {
   lang: localStorage.getItem(K.l) || 'da', selected: 'green', round: [], results: [], index: 0,

@@ -25,3 +25,5 @@ python -m http.server 8000
 ```
 
 Open `http://localhost:8000`. OCR loads Tesseract.js from jsDelivr. If Piper is selected, the first spoken word downloads the Danish Piper model (about 63 MB) and its config from Hugging Face, plus the speech runtime files from esm.sh and unpkg. The model and config are saved in the browser Cache API and reused while available; only missing cached assets are downloaded again. Clearing site data or browser storage eviction removes the cache. Piper generates speech on-device; the word text is not sent to those hosts. Browser speech is available as an alternative for each round and can be selected during dictation to replay a word. Review the [Danish voice model card](https://huggingface.co/rhasspy/piper-voices/tree/main/da/da_DK/talesyntese/medium) before redistributing the model or using it commercially.
+
+When deploying JavaScript changes, update the matching `v` query strings on the app's local module imports and script tag so browsers fetch a consistent version of the modules.

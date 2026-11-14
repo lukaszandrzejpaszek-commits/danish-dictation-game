@@ -1,4 +1,4 @@
-import { K } from './config.js';
+import { K } from './config.js?v=20261114-1';
 
 export function read(key, fallback) {
   try {
